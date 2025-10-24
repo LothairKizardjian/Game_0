@@ -51,6 +51,7 @@ function RogueScene.new()
     self.bonusSelection = nil
     self.showingBonusSelection = false
     self.gameOver = false
+    self.gameOverScene = nil
 
     -- Initialize bonus selection at start
     self:showBonusSelection()
@@ -85,7 +86,7 @@ function RogueScene:findSafeSpawnPosition()
     while attempts < 100 do
         local x = math.random(-200, 200)
         local y = math.random(-200, 200)
-
+        
         -- Check if this position is safe (floor tile)
         if self.infiniteMap:getTileAtWorldPos(x, y) == 0 then
             self.player.x = x
@@ -94,10 +95,37 @@ function RogueScene:findSafeSpawnPosition()
         end
         attempts = attempts + 1
     end
-
+    
     -- Fallback: spawn at origin and force floor
     self.player.x = 0
     self.player.y = 0
+end
+
+function RogueScene:restartGame()
+    -- Reset all game state
+    self.player = Entity.new(0, 0, TILE - 12, TILE - 12, COLOR_PLAYER, 150, 10, true)
+    self.enemies = {}
+    self.moveDir = {x = 0, y = 0}
+    self.keys = {}
+    
+    -- Reset systems
+    self.infiniteMap = InfiniteMap.new()
+    self.animationSystem = AnimationSystem.new()
+    self.combatSystem = CombatSystem.new()
+    self.enemySpawner = EnemySpawner.new()
+    self.xpShardManager = XPShardSystem.XPShardManager.new()
+    
+    -- Reset game state
+    self.bonusSelection = nil
+    self.showingBonusSelection = false
+    self.gameOver = false
+    self.gameOverScene = nil
+    
+    -- Find safe spawn position
+    self:findSafeSpawnPosition()
+    
+    -- Show bonus selection
+    self:showBonusSelection()
 end
 
 function RogueScene:keypressed(key)
@@ -135,6 +163,16 @@ function RogueScene:keyreleased(key)
 end
 
 function RogueScene:mousepressed(x, y, button)
+    -- Handle game over screen mouse clicks
+    if self.gameOver and self.gameOverScene then
+        self.gameOverScene:mousepressed(x, y, button)
+        if self.gameOverScene.restartRequested then
+            -- Restart the game
+            self:restartGame()
+        end
+        return
+    end
+    
     -- Handle bonus selection mouse clicks
     if self.showingBonusSelection then
         self.bonusSelection:mousepressed(x, y, button)
@@ -158,6 +196,10 @@ function RogueScene:update(dt)
     -- Check for game over
     if self.player.hp <= 0 then
         self.gameOver = true
+        if not self.gameOverScene then
+            self.gameOverScene = GameOverScene.new(self.player.level, self.player.xp, self.player.enemiesKilled)
+            self.gameOverScene:onEnter()
+        end
         return
     end
 
@@ -358,9 +400,7 @@ function RogueScene:render()
 
     -- Handle game over screen
     if self.gameOver then
-        local gameOverScene = GameOverScene.new(self.player.level, self.player.xp, self.player.enemiesKilled)
-        gameOverScene:onEnter()
-        gameOverScene:render()
+        self.gameOverScene:render()
         return
     end
 

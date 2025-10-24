@@ -129,11 +129,8 @@ function GameOverScene:mousepressed(x, y, button)
         if self.hoveredButton then
             local result = self:handleButtonClick(self.hoveredButton.action)
             if result == "restart" then
-                -- Restart the game
-                local Engine = require('core.engine')
-                local RogueScene = require('game.scene_refactored')
-                Engine.init()
-                Engine.pushScene(RogueScene.new())
+                -- Signal restart by returning a special value
+                self.restartRequested = true
             end
         end
     end
