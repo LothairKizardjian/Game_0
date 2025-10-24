@@ -38,10 +38,13 @@ function RogueScene.new()
     self.enemySpawner = EnemySpawner.new()
     
     -- Game state
-    self.player = Entity.new(2 * TILE, 2 * TILE, TILE - 12, TILE - 12, COLOR_PLAYER, 150, 10, true)
+    self.player = Entity.new(0, 0, TILE - 12, TILE - 12, COLOR_PLAYER, 150, 10, true)
     self.enemies = {}
     self.moveDir = {x = 0, y = 0}
     self.keys = {}
+    
+    -- Ensure player spawns in a safe area
+    self:findSafeSpawnPosition()
     
     -- XP and bonus systems
     self.xpShardManager = XPShardSystem.XPShardManager.new()
@@ -74,6 +77,27 @@ function RogueScene:selectBonus(bonus)
     self.player:applyBonus(bonus)
     self.showingBonusSelection = false
     self.bonusSelection = nil
+end
+
+function RogueScene:findSafeSpawnPosition()
+    -- Try to find a safe spawn position
+    local attempts = 0
+    while attempts < 100 do
+        local x = math.random(-200, 200)
+        local y = math.random(-200, 200)
+        
+        -- Check if this position is safe (floor tile)
+        if self.infiniteMap:getTileAtWorldPos(x, y) == 0 then
+            self.player.x = x
+            self.player.y = y
+            return
+        end
+        attempts = attempts + 1
+    end
+    
+    -- Fallback: spawn at origin and force floor
+    self.player.x = 0
+    self.player.y = 0
 end
 
 function RogueScene:keypressed(key)

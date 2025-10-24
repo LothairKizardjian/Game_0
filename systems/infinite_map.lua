@@ -44,12 +44,17 @@ function InfiniteMap:generateChunk(chunkX, chunkY)
             local worldX = chunkX * self.chunkSize + x
             local worldY = chunkY * self.chunkSize + y
             
-            -- Use noise or simple pattern for terrain
-            local noise = math.sin(worldX * 0.1) * math.cos(worldY * 0.1)
-            if noise > 0.3 then
+            -- Ensure origin is always floor
+            if worldX == 0 and worldY == 0 then
                 chunk.tiles[x][y] = 0  -- Floor
             else
-                chunk.tiles[x][y] = 1  -- Wall
+                -- Use noise or simple pattern for terrain
+                local noise = math.sin(worldX * 0.1) * math.cos(worldY * 0.1)
+                if noise > 0.1 then  -- More floor tiles
+                    chunk.tiles[x][y] = 0  -- Floor
+                else
+                    chunk.tiles[x][y] = 1  -- Wall
+                end
             end
         end
     end

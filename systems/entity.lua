@@ -61,7 +61,7 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.explosiveAttack = 0
         self.speedBurst = 0
         self.speedBurstTime = 0
-        
+
         -- Magical Powers
         self.fireball = false
         self.iceShard = false
@@ -69,7 +69,7 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.meteor = false
         self.arcaneMissile = false
         self.shadowBolt = false
-        
+
         -- Power cooldowns
         self.fireballCooldown = 0
         self.iceShardCooldown = 0
@@ -77,7 +77,7 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.meteorCooldown = 0
         self.arcaneMissileCooldown = 0
         self.shadowBoltCooldown = 0
-        
+
         -- Animation properties
         self.animationTime = 0
         self.animations = {}
@@ -101,14 +101,14 @@ function Entity:takeDamage(damage, currentTime)
     if currentTime - self.lastDamageTime < self.damageCooldown then
         return false
     end
-    
+
     self.hp = self.hp - damage
     self.lastDamageTime = currentTime
-    
+
     if self.hp <= 0 then
         self.hp = 0
     end
-    
+
     return true
 end
 
@@ -118,7 +118,7 @@ end
 
 function Entity:addXP(amount)
     if not self.isPlayer then return false end
-    
+
     self.xp = self.xp + amount
     local leveledUp = false
     while self.xp >= self.xpToNext do
@@ -129,14 +129,14 @@ end
 
 function Entity:levelUp()
     if not self.isPlayer then return false end
-    
+
     self.xp = self.xp - self.xpToNext
     self.level = self.level + 1
     self.xpToNext = math.floor(self.xpToNext * 1.5)
-    
+
     -- Heal player on level up
     self.hp = self.maxHp
-    
+
     return true
 end
 
