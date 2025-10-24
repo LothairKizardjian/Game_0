@@ -61,7 +61,7 @@ function CombatSystem:performAutoAttack(player, enemies, animationSystem)
 
         -- Chain lightning effect
         if player.chainLightning > 0 and #hitEnemies > 0 then
-            self:chainLightningAttack(hitEnemies[1], player.chainLightning, enemies, player)
+            self:chainLightningAttack(hitEnemies[1], player.chainLightning, enemies, player, animationSystem)
         end
     end
 
@@ -154,7 +154,7 @@ function CombatSystem:castLightningBolt(player, enemies, animationSystem)
 
     if nearestEnemy then
         -- Chain lightning effect
-        self:chainLightningAttack(nearestEnemy, 3, enemies, player)
+        self:chainLightningAttack(nearestEnemy, 3, enemies, player, animationSystem)
         player.lightningBoltCooldown = 3.0
     end
 end
@@ -276,7 +276,7 @@ function CombatSystem:createExplosion(x, y, damage, enemies, animationSystem)
     animationSystem:addAnimation("explosion", x, y, 0, 0, 1.0, {1, 0.5, 0})
 end
 
-function CombatSystem:chainLightningAttack(sourceEnemy, chainCount, enemies, player)
+function CombatSystem:chainLightningAttack(sourceEnemy, chainCount, enemies, player, animationSystem)
     local chainedEnemies = {sourceEnemy}
     local usedEnemies = {[sourceEnemy] = true}
 

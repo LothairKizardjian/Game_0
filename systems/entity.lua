@@ -234,7 +234,7 @@ end
 
 function Entity:recalculateBonusEffects()
     if not self.isPlayer then return end
-    
+
     -- Reset all bonus effects to base values
     self.speedMultiplier = 1.0
     self.damageReduction = 0
@@ -256,7 +256,7 @@ function Entity:recalculateBonusEffects()
     self.multiStrike = 1
     self.chainLightning = 0
     self.explosiveAttack = 0
-    
+
     -- Reapply all bonuses
     for _, bonus in ipairs(self.bonuses) do
         if bonus.effect == "max_health" then
