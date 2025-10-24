@@ -131,7 +131,7 @@ function GameOverScene:mousepressed(x, y, button)
             if result == "restart" then
                 -- Restart the game
                 local Engine = require('core.engine')
-                local RogueScene = require('game.scene')
+                local RogueScene = require('game.scene_refactored')
                 Engine.init()
                 Engine.pushScene(RogueScene.new())
             end

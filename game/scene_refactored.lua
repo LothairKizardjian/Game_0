@@ -36,25 +36,25 @@ function RogueScene.new()
     self.animationSystem = AnimationSystem.new()
     self.combatSystem = CombatSystem.new()
     self.enemySpawner = EnemySpawner.new()
-    
+
     -- Game state
     self.player = Entity.new(0, 0, TILE - 12, TILE - 12, COLOR_PLAYER, 150, 10, true)
     self.enemies = {}
     self.moveDir = {x = 0, y = 0}
     self.keys = {}
-    
+
     -- Ensure player spawns in a safe area
     self:findSafeSpawnPosition()
-    
+
     -- XP and bonus systems
     self.xpShardManager = XPShardSystem.XPShardManager.new()
     self.bonusSelection = nil
     self.showingBonusSelection = false
     self.gameOver = false
-    
+
     -- Initialize bonus selection at start
     self:showBonusSelection()
-    
+
     return self
 end
 
@@ -85,7 +85,7 @@ function RogueScene:findSafeSpawnPosition()
     while attempts < 100 do
         local x = math.random(-200, 200)
         local y = math.random(-200, 200)
-        
+
         -- Check if this position is safe (floor tile)
         if self.infiniteMap:getTileAtWorldPos(x, y) == 0 then
             self.player.x = x
@@ -94,7 +94,7 @@ function RogueScene:findSafeSpawnPosition()
         end
         attempts = attempts + 1
     end
-    
+
     -- Fallback: spawn at origin and force floor
     self.player.x = 0
     self.player.y = 0
@@ -117,7 +117,7 @@ function RogueScene:keypressed(key)
     if key == 'space' then
         self.combatSystem:performAutoAttack(self.player, self.enemies, self.animationSystem)
     end
-    
+
     -- Zoom controls
     if key == '=' or key == '+' then
         self.camera:zoomIn()
@@ -126,7 +126,7 @@ function RogueScene:keypressed(key)
     elseif key == '0' then
         self.camera:resetZoom()
     end
-    
+
     self.keys[key] = true
 end
 
@@ -172,7 +172,7 @@ function RogueScene:update(dt)
         local length = math.sqrt(x*x + y*y)
         self.moveDir.x = x / length
         self.moveDir.y = y / length
-        
+
         -- Update facing direction when moving
         self.player.facingDirection.x = self.moveDir.x
         self.player.facingDirection.y = self.moveDir.y
@@ -230,20 +230,20 @@ function RogueScene:update(dt)
             -- Drop XP shards
             self.xpShardManager:addShard(enemy.x + enemy.w/2, enemy.y + enemy.h/2, 1)
             self.player.enemiesKilled = self.player.enemiesKilled + 1
-            
+
             -- Apply bonuses
             if self.player.lifeSteal > 0 then
                 self.player.hp = math.min(self.player.maxHp, self.player.hp + self.player.lifeSteal)
             end
-            
+
             if self.player.speedBurst > 0 then
                 self.player.speedBurstTime = 1.0
             end
-            
+
             if self.player.explosiveDeath > 0 then
                 self.combatSystem:createExplosion(enemy.x + enemy.w/2, enemy.y + enemy.h/2, self.player.explosiveDeath, self.enemies, self.animationSystem)
             end
-            
+
             table.remove(self.enemies, i)
         end
     end
@@ -252,7 +252,7 @@ function RogueScene:update(dt)
     if self.player.damageImmunityTime > 0 then
         self.player.damageImmunityTime = self.player.damageImmunityTime - dt
     end
-    
+
     if self.player.speedBurstTime > 0 then
         self.player.speedBurstTime = self.player.speedBurstTime - dt
     end
@@ -261,7 +261,7 @@ function RogueScene:update(dt)
     if self.player.autoAttackCooldown > 0 then
         self.player.autoAttackCooldown = self.player.autoAttackCooldown - dt
     end
-    
+
     -- Update magical power cooldowns
     if self.player.fireballCooldown > 0 then
         self.player.fireballCooldown = self.player.fireballCooldown - dt
@@ -284,16 +284,16 @@ function RogueScene:update(dt)
 
     -- Update infinite map
     self.infiniteMap:update(self.player.x, self.player.y)
-    
+
     -- Update enemy spawning
     self.enemySpawner:update(dt, self.enemies, self.player, self.infiniteMap)
 
     -- Handle passive bonuses
     self:updatePassiveBonuses(dt)
-    
+
     -- Automatic magical powers
     self.combatSystem:updateAutomaticPowers(self.player, self.enemies, self.animationSystem)
-    
+
     -- Update animations
     self.animationSystem:update(dt)
 
@@ -317,19 +317,19 @@ end
 
 function RogueScene:updatePassiveBonuses(dt)
     local currentTime = love.timer.getTime()
-    
+
     -- Health regeneration
     if self.player.healthRegen and currentTime - self.player.lastHealthRegen >= 3.0 then
         self.player.hp = math.min(self.player.maxHp, self.player.hp + self.player.healthRegen)
         self.player.lastHealthRegen = currentTime
     end
-    
+
     -- XP Rain
     if self.player.xpRain and currentTime - self.player.lastXPRain >= 1.0 then
         self.player:addXP(self.player.xpRain)
         self.player.lastXPRain = currentTime
     end
-    
+
     -- God Mode
     if self.player.godMode and currentTime - self.player.lastGodMode >= 2.0 then
         for _, enemy in ipairs(self.enemies) do
@@ -337,7 +337,7 @@ function RogueScene:updatePassiveBonuses(dt)
         end
         self.player.lastGodMode = currentTime
     end
-    
+
     -- Teleport
     if self.player.teleport and currentTime - self.player.lastTeleport >= 5.0 then
         local x, y = self.infiniteMap:randomFloorTile(self.player.x, self.player.y)
@@ -396,7 +396,7 @@ function RogueScene:render()
     -- Draw collect radius (debug)
     if self.player.collectRadiusMultiplier > 1.0 then
         love.graphics.setColor(0.2, 0.8, 1.0, 0.2)
-        love.graphics.circle('fill', self.player.x + self.player.w/2, self.player.y + self.player.h/2, 
+        love.graphics.circle('fill', self.player.x + self.player.w/2, self.player.y + self.player.h/2,
             self.player.collectRadius * self.player.collectRadiusMultiplier)
     end
 
@@ -404,7 +404,7 @@ function RogueScene:render()
     if self.player.autoAttackCooldown > 0.4 then  -- Show for first 0.1 seconds
         self:drawAttackCone()
     end
-    
+
     -- Draw animations
     self.animationSystem:render()
 
@@ -464,7 +464,7 @@ function RogueScene:drawAttackCone()
 
     -- Draw cone
     love.graphics.setColor(1, 0.8, 0.2, 0.6)  -- Orange with transparency
-    love.graphics.polygon('fill', 
+    love.graphics.polygon('fill',
         playerCenterX, playerCenterY,
         playerCenterX + leftX * range, playerCenterY + leftY * range,
         playerCenterX + rightX * range, playerCenterY + rightY * range
@@ -472,7 +472,7 @@ function RogueScene:drawAttackCone()
 
     -- Draw cone outline
     love.graphics.setColor(1, 0.6, 0, 0.8)
-    love.graphics.polygon('line', 
+    love.graphics.polygon('line',
         playerCenterX, playerCenterY,
         playerCenterX + leftX * range, playerCenterY + leftY * range,
         playerCenterX + rightX * range, playerCenterY + rightY * range
@@ -493,7 +493,7 @@ function RogueScene:renderHUD()
     else
         love.graphics.print("Attack: Ready (SPACE)", 8, 116)
     end
-    
+
     -- Magical Powers
     local powerY = 138
     if self.player.fireball then
@@ -504,7 +504,7 @@ function RogueScene:renderHUD()
         end
         powerY = powerY + 15
     end
-    
+
     if self.player.iceShard then
         if self.player.iceShardCooldown > 0 then
             love.graphics.print("Ice Shard: " .. string.format("%.1f", self.player.iceShardCooldown) .. "s", 8, powerY)
@@ -513,7 +513,7 @@ function RogueScene:renderHUD()
         end
         powerY = powerY + 15
     end
-    
+
     if self.player.lightningBolt then
         if self.player.lightningBoltCooldown > 0 then
             love.graphics.print("Lightning: " .. string.format("%.1f", self.player.lightningBoltCooldown) .. "s", 8, powerY)
@@ -522,7 +522,7 @@ function RogueScene:renderHUD()
         end
         powerY = powerY + 15
     end
-    
+
     if self.player.meteor then
         if self.player.meteorCooldown > 0 then
             love.graphics.print("Meteor: " .. string.format("%.1f", self.player.meteorCooldown) .. "s", 8, powerY)
@@ -531,7 +531,7 @@ function RogueScene:renderHUD()
         end
         powerY = powerY + 15
     end
-    
+
     if self.player.arcaneMissile then
         if self.player.arcaneMissileCooldown > 0 then
             love.graphics.print("Arcane: " .. string.format("%.1f", self.player.arcaneMissileCooldown) .. "s", 8, powerY)
@@ -540,7 +540,7 @@ function RogueScene:renderHUD()
         end
         powerY = powerY + 15
     end
-    
+
     if self.player.shadowBolt then
         if self.player.shadowBoltCooldown > 0 then
             love.graphics.print("Shadow: " .. string.format("%.1f", self.player.shadowBoltCooldown) .. "s", 8, powerY)
@@ -554,7 +554,7 @@ function RogueScene:renderHUD()
     local hudBarWidth = 120
     local hudBarHeight = 8
     self:drawHealthBar(self.player, 8, powerY + 10, hudBarWidth, hudBarHeight)
-    
+
     -- XP bar
     local xpPercent = self.player.xp / self.player.xpToNext
     local xpBarWidth = 120
@@ -565,7 +565,7 @@ function RogueScene:renderHUD()
     love.graphics.rectangle('fill', 8, powerY + 25, xpBarWidth * xpPercent, xpBarHeight)
     love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle('line', 8, powerY + 25, xpBarWidth, xpBarHeight)
-    
+
     -- Active bonuses display
     if #self.player.bonuses > 0 then
         love.graphics.print("Bonuses:", 8, powerY + 45)
