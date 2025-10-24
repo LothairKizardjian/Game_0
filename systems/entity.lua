@@ -143,75 +143,167 @@ end
 function Entity:applyBonus(bonus)
     if not self.isPlayer then return end
 
+    -- Check if player already has this bonus
+    local existingBonus = nil
+    for i, existing in ipairs(self.bonuses) do
+        if existing.id == bonus.id then
+            existingBonus = existing
+            -- Upgrade existing bonus
+            existing.level = existing.level + 1
+            -- Recalculate all bonus effects
+            self:recalculateBonusEffects()
+            return
+        end
+    end
+
+    -- If not found, add new bonus
     table.insert(self.bonuses, bonus)
 
-    if bonus.effect == "max_health" then
-        self.maxHp = self.maxHp + bonus:getScaledValue()
-        self.hp = self.hp + bonus:getScaledValue()
-    elseif bonus.effect == "speed_mult" then
-        self.speedMultiplier = self.speedMultiplier + bonus:getScaledValue()
-    elseif bonus.effect == "damage_reduction" then
-        self.damageReduction = self.damageReduction + bonus:getScaledValue()
-    elseif bonus.effect == "xp_mult" then
-        self.xpMultiplier = self.xpMultiplier + bonus:getScaledValue()
-    elseif bonus.effect == "health_regen" then
-        self.healthRegen = bonus:getScaledValue()
-    elseif bonus.effect == "collect_radius_mult" then
-        self.collectRadiusMultiplier = self.collectRadiusMultiplier + bonus:getScaledValue()
-    elseif bonus.effect == "crit_chance" then
-        self.critChance = self.critChance + bonus:getScaledValue()
-    elseif bonus.effect == "enemy_slow" then
-        self.enemySlow = bonus:getScaledValue()
-    elseif bonus.effect == "damage_immunity" then
-        self.damageImmunity = bonus:getScaledValue()
-    elseif bonus.effect == "thorns" then
-        self.thorns = self.thorns + bonus:getScaledValue()
-    elseif bonus.effect == "speed_burst" then
-        self.speedBurst = bonus:getScaledValue()
-    elseif bonus.effect == "life_steal" then
-        self.lifeSteal = self.lifeSteal + bonus:getScaledValue()
-    elseif bonus.effect == "explosive_death" then
-        self.explosiveDeath = self.explosiveDeath + bonus:getScaledValue()
-    elseif bonus.effect == "time_slow" then
-        self.timeSlow = self.timeSlow - bonus:getScaledValue()
-    elseif bonus.effect == "xp_magnet" then
-        self.xpMagnet = self.xpMagnet + bonus:getScaledValue()
-    elseif bonus.effect == "immortality" then
-        self.immortality = true
-    elseif bonus.effect == "god_mode" then
-        self.godMode = true
-    elseif bonus.effect == "xp_rain" then
-        self.xpRain = true
-    elseif bonus.effect == "teleport" then
-        self.teleport = true
-    elseif bonus.effect == "auto_attack_damage" then
-        self.autoAttackDamage = self.autoAttackDamage + bonus:getScaledValue()
-    elseif bonus.effect == "auto_attack_range" then
-        self.autoAttackRange = self.autoAttackRange * (1 + bonus:getScaledValue())
-    elseif bonus.effect == "auto_attack_speed" then
-        self.baseAutoAttackCooldown = math.max(0.1, self.baseAutoAttackCooldown - bonus:getScaledValue())
-    elseif bonus.effect == "auto_attack_angle" then
-        self.autoAttackAngle = self.autoAttackAngle * (1 + bonus:getScaledValue())
-    elseif bonus.effect == "piercing_attack" then
-        self.piercingAttack = true
-    elseif bonus.effect == "multi_strike" then
-        self.multiStrike = self.multiStrike + bonus:getScaledValue()
-    elseif bonus.effect == "chain_lightning" then
-        self.chainLightning = self.chainLightning + bonus:getScaledValue()
-    elseif bonus.effect == "explosive_attack" then
-        self.explosiveAttack = self.explosiveAttack + bonus:getScaledValue()
-    elseif bonus.effect == "fireball" then
-        self.fireball = true
-    elseif bonus.effect == "ice_shard" then
-        self.iceShard = true
-    elseif bonus.effect == "lightning_bolt" then
-        self.lightningBolt = true
-    elseif bonus.effect == "meteor" then
-        self.meteor = true
-    elseif bonus.effect == "arcane_missile" then
-        self.arcaneMissile = true
-    elseif bonus.effect == "shadow_bolt" then
-        self.shadowBolt = true
+    -- Apply bonus effects (only for new bonuses, upgrades are handled by level increase)
+    if not existingBonus then
+        if bonus.effect == "max_health" then
+            self.maxHp = self.maxHp + bonus:getScaledValue()
+            self.hp = self.hp + bonus:getScaledValue()
+        elseif bonus.effect == "speed_mult" then
+            self.speedMultiplier = self.speedMultiplier + bonus:getScaledValue()
+        elseif bonus.effect == "damage_reduction" then
+            self.damageReduction = self.damageReduction + bonus:getScaledValue()
+        elseif bonus.effect == "xp_mult" then
+            self.xpMultiplier = self.xpMultiplier + bonus:getScaledValue()
+        elseif bonus.effect == "health_regen" then
+            self.healthRegen = bonus:getScaledValue()
+        elseif bonus.effect == "collect_radius_mult" then
+            self.collectRadiusMultiplier = self.collectRadiusMultiplier + bonus:getScaledValue()
+        elseif bonus.effect == "crit_chance" then
+            self.critChance = self.critChance + bonus:getScaledValue()
+        elseif bonus.effect == "enemy_slow" then
+            self.enemySlow = bonus:getScaledValue()
+        elseif bonus.effect == "damage_immunity" then
+            self.damageImmunity = bonus:getScaledValue()
+        elseif bonus.effect == "thorns" then
+            self.thorns = self.thorns + bonus:getScaledValue()
+        elseif bonus.effect == "speed_burst" then
+            self.speedBurst = bonus:getScaledValue()
+        elseif bonus.effect == "life_steal" then
+            self.lifeSteal = self.lifeSteal + bonus:getScaledValue()
+        elseif bonus.effect == "explosive_death" then
+            self.explosiveDeath = self.explosiveDeath + bonus:getScaledValue()
+        elseif bonus.effect == "time_slow" then
+            self.timeSlow = self.timeSlow - bonus:getScaledValue()
+        elseif bonus.effect == "xp_magnet" then
+            self.xpMagnet = self.xpMagnet + bonus:getScaledValue()
+        elseif bonus.effect == "immortality" then
+            self.immortality = true
+        elseif bonus.effect == "god_mode" then
+            self.godMode = true
+        elseif bonus.effect == "xp_rain" then
+            self.xpRain = true
+        elseif bonus.effect == "teleport" then
+            self.teleport = true
+        elseif bonus.effect == "auto_attack_damage" then
+            self.autoAttackDamage = self.autoAttackDamage + bonus:getScaledValue()
+        elseif bonus.effect == "auto_attack_range" then
+            self.autoAttackRange = self.autoAttackRange * (1 + bonus:getScaledValue())
+        elseif bonus.effect == "auto_attack_speed" then
+            self.baseAutoAttackCooldown = math.max(0.1, self.baseAutoAttackCooldown - bonus:getScaledValue())
+        elseif bonus.effect == "auto_attack_angle" then
+            self.autoAttackAngle = self.autoAttackAngle * (1 + bonus:getScaledValue())
+        elseif bonus.effect == "piercing_attack" then
+            self.piercingAttack = true
+        elseif bonus.effect == "multi_strike" then
+            self.multiStrike = self.multiStrike + bonus:getScaledValue()
+        elseif bonus.effect == "chain_lightning" then
+            self.chainLightning = self.chainLightning + bonus:getScaledValue()
+        elseif bonus.effect == "explosive_attack" then
+            self.explosiveAttack = self.explosiveAttack + bonus:getScaledValue()
+        elseif bonus.effect == "fireball" then
+            self.fireball = true
+        elseif bonus.effect == "ice_shard" then
+            self.iceShard = true
+        elseif bonus.effect == "lightning_bolt" then
+            self.lightningBolt = true
+        elseif bonus.effect == "meteor" then
+            self.meteor = true
+        elseif bonus.effect == "arcane_missile" then
+            self.arcaneMissile = true
+        elseif bonus.effect == "shadow_bolt" then
+            self.shadowBolt = true
+        end
+    end
+end
+
+function Entity:recalculateBonusEffects()
+    if not self.isPlayer then return end
+    
+    -- Reset all bonus effects to base values
+    self.speedMultiplier = 1.0
+    self.damageReduction = 0
+    self.xpMultiplier = 1.0
+    self.collectRadiusMultiplier = 1.0
+    self.critChance = 0
+    self.enemySlow = 0
+    self.damageImmunity = 0
+    self.thorns = 0
+    self.speedBurst = 0
+    self.lifeSteal = 0
+    self.explosiveDeath = 0
+    self.timeSlow = 1.0
+    self.xpMagnet = 1.0
+    self.autoAttackDamage = 1
+    self.autoAttackRange = 80
+    self.baseAutoAttackCooldown = 0.5
+    self.autoAttackAngle = math.pi / 3
+    self.multiStrike = 1
+    self.chainLightning = 0
+    self.explosiveAttack = 0
+    
+    -- Reapply all bonuses
+    for _, bonus in ipairs(self.bonuses) do
+        if bonus.effect == "max_health" then
+            self.maxHp = self.baseMaxHp + bonus:getScaledValue()
+        elseif bonus.effect == "speed_mult" then
+            self.speedMultiplier = self.speedMultiplier + bonus:getScaledValue()
+        elseif bonus.effect == "damage_reduction" then
+            self.damageReduction = self.damageReduction + bonus:getScaledValue()
+        elseif bonus.effect == "xp_mult" then
+            self.xpMultiplier = self.xpMultiplier + bonus:getScaledValue()
+        elseif bonus.effect == "health_regen" then
+            self.healthRegen = bonus:getScaledValue()
+        elseif bonus.effect == "collect_radius_mult" then
+            self.collectRadiusMultiplier = self.collectRadiusMultiplier + bonus:getScaledValue()
+        elseif bonus.effect == "crit_chance" then
+            self.critChance = self.critChance + bonus:getScaledValue()
+        elseif bonus.effect == "enemy_slow" then
+            self.enemySlow = bonus:getScaledValue()
+        elseif bonus.effect == "damage_immunity" then
+            self.damageImmunity = bonus:getScaledValue()
+        elseif bonus.effect == "thorns" then
+            self.thorns = self.thorns + bonus:getScaledValue()
+        elseif bonus.effect == "speed_burst" then
+            self.speedBurst = bonus:getScaledValue()
+        elseif bonus.effect == "life_steal" then
+            self.lifeSteal = self.lifeSteal + bonus:getScaledValue()
+        elseif bonus.effect == "explosive_death" then
+            self.explosiveDeath = self.explosiveDeath + bonus:getScaledValue()
+        elseif bonus.effect == "time_slow" then
+            self.timeSlow = self.timeSlow - bonus:getScaledValue()
+        elseif bonus.effect == "xp_magnet" then
+            self.xpMagnet = self.xpMagnet + bonus:getScaledValue()
+        elseif bonus.effect == "auto_attack_damage" then
+            self.autoAttackDamage = self.autoAttackDamage + bonus:getScaledValue()
+        elseif bonus.effect == "auto_attack_range" then
+            self.autoAttackRange = self.autoAttackRange * (1 + bonus:getScaledValue())
+        elseif bonus.effect == "auto_attack_speed" then
+            self.baseAutoAttackCooldown = math.max(0.1, self.baseAutoAttackCooldown - bonus:getScaledValue())
+        elseif bonus.effect == "auto_attack_angle" then
+            self.autoAttackAngle = self.autoAttackAngle * (1 + bonus:getScaledValue())
+        elseif bonus.effect == "multi_strike" then
+            self.multiStrike = self.multiStrike + bonus:getScaledValue()
+        elseif bonus.effect == "chain_lightning" then
+            self.chainLightning = self.chainLightning + bonus:getScaledValue()
+        elseif bonus.effect == "explosive_attack" then
+            self.explosiveAttack = self.explosiveAttack + bonus:getScaledValue()
+        end
     end
 end
 

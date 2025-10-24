@@ -19,7 +19,7 @@ function EnemySpawner:update(dt, enemies, player, infiniteMap)
 
     -- Spawn more frequently with more enemies
     local spawnRate = math.max(1.5, 2.5 - timeElapsed * 0.02)  -- Spawn faster over time
-    
+
     -- Increase enemies per tier and spawn more frequently
     local enemiesPerSpawn = math.floor(1 + timeElapsed / 20)  -- More enemies per spawn every 20 seconds
     local maxEnemies = math.min(60, 20 + timeElapsed * 2.0)  -- More max enemies

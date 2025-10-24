@@ -6,9 +6,9 @@ AnimationSystem.__index = AnimationSystem
 
 function AnimationSystem.new()
     local self = setmetatable({}, AnimationSystem)
-    
+
     self.animations = {}
-    
+
     return self
 end
 
@@ -17,7 +17,7 @@ function AnimationSystem:update(dt)
     for i = #self.animations, 1, -1 do
         local anim = self.animations[i]
         anim.life = anim.life - dt
-        
+
         if anim.life <= 0 then
             table.remove(self.animations, i)
         else
@@ -47,7 +47,7 @@ function AnimationSystem:addAnimation(type, x, y, vx, vy, life, color, data)
         radius = 5,
         growth = 50
     }
-    
+
     -- Add chain lightning specific data
     if type == "chain_lightning" and data then
         anim.x1 = data.x1
@@ -56,14 +56,14 @@ function AnimationSystem:addAnimation(type, x, y, vx, vy, life, color, data)
         anim.y2 = data.y2
         anim.alpha = data.alpha or 1.0
     end
-    
+
     table.insert(self.animations, anim)
 end
 
 function AnimationSystem:render()
     for _, anim in ipairs(self.animations) do
         love.graphics.setColor(anim.color[1], anim.color[2], anim.color[3], anim.life / 1.0)
-        
+
         if anim.type == "fireball" then
             love.graphics.circle('fill', anim.x, anim.y, 8)
             love.graphics.setColor(1, 0.5, 0, anim.life / 1.0)
