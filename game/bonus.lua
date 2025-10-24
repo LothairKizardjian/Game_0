@@ -280,6 +280,9 @@ function PowerSelection:render()
         
         print("Damage text: " .. damageText)
         
+        -- Render the complete description with mixed colors
+        local fullText = baseDescription .. damageText
+        
         -- Render base description in gray
         love.graphics.setColor(0.8, 0.8, 0.8)
         love.graphics.print(baseDescription, x + 10, y + 80)
@@ -288,9 +291,13 @@ function PowerSelection:render()
         local baseWidth = love.graphics.getFont():getWidth(baseDescription)
         local damageX = x + 10 + baseWidth
         
-        -- Render damage text in blue
-        love.graphics.setColor(0.2, 0.6, 1.0)  -- Blue color
+        -- Render damage text in bright blue for visibility
+        love.graphics.setColor(0.0, 0.8, 1.0)  -- Bright blue color
         love.graphics.print(damageText, damageX, y + 80)
+        
+        -- Debug: Draw a rectangle around the damage text area
+        love.graphics.setColor(1.0, 0.0, 0.0)  -- Red debug rectangle
+        love.graphics.rectangle('line', damageX, y + 75, love.graphics.getFont():getWidth(damageText), 20)
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)
