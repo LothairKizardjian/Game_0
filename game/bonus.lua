@@ -196,7 +196,6 @@ function Meteor.new(level)
     self.spawnTimer = 0
     self.spawnInterval = 2.0  -- Spawn every 2 seconds
     self.maxMeteors = math.min(5, math.floor((self.level + 1) / 2))  -- One meteor every 2 levels, max 5
-    print("Meteor level " .. self.level .. " created with maxMeteors: " .. self.maxMeteors)
 
     return self
 end
@@ -204,14 +203,13 @@ end
 function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
     self.spawnTimer = self.spawnTimer + dt
     
-    -- Spawn new meteors to reach maxMeteors count
+    -- Spawn meteors with delay between each
     if self.spawnTimer >= self.spawnInterval and #self.meteors < self.maxMeteors then
-        -- Spawn meteors to fill up to maxMeteors
-        print("Spawning meteors: current=" .. #self.meteors .. ", max=" .. self.maxMeteors)
-        for i = #self.meteors + 1, self.maxMeteors do
-            self:spawnMeteor(playerX, playerY)
-        end
+        -- Spawn one meteor at a time with delay
+        self:spawnMeteor(playerX, playerY)
         self.spawnTimer = 0
+        -- Set a shorter interval for subsequent meteors
+        self.spawnInterval = 0.5  -- 0.5 second delay between meteors
     end
 
     -- Update existing meteors
@@ -235,6 +233,11 @@ function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
             -- Remove meteor
             table.remove(self.meteors, i)
         end
+    end
+    
+    -- Reset spawn interval when all meteors are destroyed
+    if #self.meteors == 0 then
+        self.spawnInterval = 2.0  -- Reset to original interval
     end
 end
 
