@@ -45,7 +45,7 @@ end
 function Power:getEnhancedDescription()
     local currentDamage = self:getCurrentDamage()
     local newDamage = self:getNewDamage()
-    
+
     if currentDamage > 0 then
         -- Player already has this power - show upgrade
         local damageIncrease = newDamage - currentDamage
@@ -59,7 +59,7 @@ end
 function Power:getDamageInfo()
     local currentDamage = self:getCurrentDamage()
     local newDamage = self:getNewDamage()
-    
+
     if currentDamage > 0 then
         local damageIncrease = newDamage - currentDamage
         return {
@@ -269,19 +269,24 @@ function PowerSelection:render()
         local baseDescription = "3 blades orbit around you, dealing "
         local damageText = ""
         
+        -- Debug output
+        print("Power damage info: current=" .. damageInfo.current .. ", increase=" .. damageInfo.increase .. ", hasUpgrade=" .. tostring(damageInfo.hasUpgrade))
+        
         if damageInfo.hasUpgrade then
             damageText = damageInfo.current .. " ( + " .. damageInfo.increase .. " ) damage."
         else
             damageText = damageInfo.current .. " damage."
         end
         
-        -- Render base description
-        love.graphics.setColor(0.8, 0.8, 0.8)
-        love.graphics.printf(baseDescription, x + 10, y + 80, 180, 'center')
+        print("Damage text: " .. damageText)
         
-        -- Calculate position for damage text
+        -- Render base description in gray
+        love.graphics.setColor(0.8, 0.8, 0.8)
+        love.graphics.print(baseDescription, x + 10, y + 80)
+        
+        -- Calculate position for damage text (right after base description)
         local baseWidth = love.graphics.getFont():getWidth(baseDescription)
-        local damageX = x + 10 + (180 - baseWidth) / 2 + baseWidth
+        local damageX = x + 10 + baseWidth
         
         -- Render damage text in blue
         love.graphics.setColor(0.2, 0.6, 1.0)  -- Blue color
