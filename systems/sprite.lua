@@ -163,40 +163,62 @@ end
 function SpriteSystem:setDirection(name, direction)
     local sprite = self.sprites[name]
     if not sprite then return end
-
-    -- Map direction vector to direction name
+    
+    -- Map direction vector to direction name using continuous values
     local directionName = "south"  -- Default
-
-    if direction.x == 0 and direction.y == -1 then
-        directionName = "north"
-    elseif direction.x == 1 and direction.y == 0 then
-        directionName = "east"
-    elseif direction.x == 0 and direction.y == 1 then
-        directionName = "south"
-    elseif direction.x == -1 and direction.y == 0 then
-        directionName = "west"
+    
+    -- Use absolute values to determine dominant direction
+    local absX = math.abs(direction.x)
+    local absY = math.abs(direction.y)
+    
+    if absX > absY then
+        -- Horizontal movement is dominant
+        if direction.x > 0 then
+            directionName = "east"
+        else
+            directionName = "west"
+        end
+    else
+        -- Vertical movement is dominant
+        if direction.y > 0 then
+            directionName = "south"
+        else
+            directionName = "north"
+        end
     end
-
+    
     sprite.currentDirection = directionName
 end
 
 function SpriteSystem:setEnemyDirection(name, direction)
     local sprite = self.sprites[name]
-    if not sprite then return end
-
-    -- Map direction vector to direction name
-    local directionName = "south"  -- Default
-
-    if direction.x == 0 and direction.y == -1 then
-        directionName = "north"
-    elseif direction.x == 1 and direction.y == 0 then
-        directionName = "east"
-    elseif direction.x == 0 and direction.y == 1 then
-        directionName = "south"
-    elseif direction.x == -1 and direction.y == 0 then
-        directionName = "west"
+    if not sprite then 
+        return 
     end
-
+    
+    -- Map direction vector to direction name using continuous values
+    local directionName = "south"  -- Default
+    
+    -- Use absolute values to determine dominant direction
+    local absX = math.abs(direction.x)
+    local absY = math.abs(direction.y)
+    
+    if absX > absY then
+        -- Horizontal movement is dominant
+        if direction.x > 0 then
+            directionName = "east"
+        else
+            directionName = "west"
+        end
+    else
+        -- Vertical movement is dominant
+        if direction.y > 0 then
+            directionName = "south"
+        else
+            directionName = "north"
+        end
+    end
+    
     sprite.currentDirection = directionName
 end
 
