@@ -127,7 +127,14 @@ end
 function GameOverScene:mousepressed(x, y, button)
     if button == 1 then -- Left mouse button
         if self.hoveredButton then
-            self:handleButtonClick(self.hoveredButton.action)
+            local result = self:handleButtonClick(self.hoveredButton.action)
+            if result == "restart" then
+                -- Restart the game
+                local Engine = require('core.engine')
+                local RogueScene = require('game.scene')
+                Engine.init()
+                Engine.pushScene(RogueScene.new())
+            end
         end
     end
 end

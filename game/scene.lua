@@ -84,6 +84,22 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.multiStrike = 1
         self.chainLightning = 0
         self.explosiveAttack = 0
+        
+        -- Magical Powers
+        self.fireball = false
+        self.iceShard = false
+        self.lightningBolt = false
+        self.meteor = false
+        self.arcaneMissile = false
+        self.shadowBolt = false
+        
+        -- Power cooldowns
+        self.fireballCooldown = 0
+        self.iceShardCooldown = 0
+        self.lightningBoltCooldown = 0
+        self.meteorCooldown = 0
+        self.arcaneMissileCooldown = 0
+        self.shadowBoltCooldown = 0
     end
 
     return self
@@ -200,6 +216,18 @@ function Entity:applyBonus(bonus)
         self.chainLightning = self.chainLightning + bonus:getScaledValue()
     elseif bonus.effect == "explosive_attack" then
         self.explosiveAttack = self.explosiveAttack + bonus:getScaledValue()
+    elseif bonus.effect == "fireball" then
+        self.fireball = true
+    elseif bonus.effect == "ice_shard" then
+        self.iceShard = true
+    elseif bonus.effect == "lightning_bolt" then
+        self.lightningBolt = true
+    elseif bonus.effect == "meteor" then
+        self.meteor = true
+    elseif bonus.effect == "arcane_missile" then
+        self.arcaneMissile = true
+    elseif bonus.effect == "shadow_bolt" then
+        self.shadowBolt = true
     end
 end
 
@@ -440,6 +468,21 @@ function RogueScene:keypressed(key)
     if key == 'space' then
         self:performAutoAttack()
     end
+    
+    -- Magical Powers
+    if key == 'q' and self.player.fireball then
+        self:castFireball()
+    elseif key == 'e' and self.player.iceShard then
+        self:castIceShard()
+    elseif key == 'r' and self.player.lightningBolt then
+        self:castLightningBolt()
+    elseif key == 't' and self.player.meteor then
+        self:castMeteor()
+    elseif key == 'f' and self.player.arcaneMissile then
+        self:castArcaneMissile()
+    elseif key == 'g' and self.player.shadowBolt then
+        self:castShadowBolt()
+    end
 
     -- Zoom controls
     if key == '=' or key == '+' then
@@ -622,6 +665,26 @@ function RogueScene:update(dt)
     if self.player.autoAttackCooldown > 0 then
         self.player.autoAttackCooldown = self.player.autoAttackCooldown - dt
     end
+    
+    -- Update magical power cooldowns
+    if self.player.fireballCooldown > 0 then
+        self.player.fireballCooldown = self.player.fireballCooldown - dt
+    end
+    if self.player.iceShardCooldown > 0 then
+        self.player.iceShardCooldown = self.player.iceShardCooldown - dt
+    end
+    if self.player.lightningBoltCooldown > 0 then
+        self.player.lightningBoltCooldown = self.player.lightningBoltCooldown - dt
+    end
+    if self.player.meteorCooldown > 0 then
+        self.player.meteorCooldown = self.player.meteorCooldown - dt
+    end
+    if self.player.arcaneMissileCooldown > 0 then
+        self.player.arcaneMissileCooldown = self.player.arcaneMissileCooldown - dt
+    end
+    if self.player.shadowBoltCooldown > 0 then
+        self.player.shadowBoltCooldown = self.player.shadowBoltCooldown - dt
+    end
 
     -- Enemy spawning system
     self.enemySpawnTimer = self.enemySpawnTimer + dt
@@ -723,30 +786,86 @@ function RogueScene:render()
     else
         love.graphics.print("Attack: Ready (SPACE)", 8, 116)
     end
+    
+    -- Magical Powers
+    local powerY = 138
+    if self.player.fireball then
+        if self.player.fireballCooldown > 0 then
+            love.graphics.print("Fireball: " .. string.format("%.1f", self.player.fireballCooldown) .. "s", 8, powerY)
+        else
+            love.graphics.print("Fireball: Ready (Q)", 8, powerY)
+        end
+        powerY = powerY + 15
+    end
+    
+    if self.player.iceShard then
+        if self.player.iceShardCooldown > 0 then
+            love.graphics.print("Ice Shard: " .. string.format("%.1f", self.player.iceShardCooldown) .. "s", 8, powerY)
+        else
+            love.graphics.print("Ice Shard: Ready (E)", 8, powerY)
+        end
+        powerY = powerY + 15
+    end
+    
+    if self.player.lightningBolt then
+        if self.player.lightningBoltCooldown > 0 then
+            love.graphics.print("Lightning: " .. string.format("%.1f", self.player.lightningBoltCooldown) .. "s", 8, powerY)
+        else
+            love.graphics.print("Lightning: Ready (R)", 8, powerY)
+        end
+        powerY = powerY + 15
+    end
+    
+    if self.player.meteor then
+        if self.player.meteorCooldown > 0 then
+            love.graphics.print("Meteor: " .. string.format("%.1f", self.player.meteorCooldown) .. "s", 8, powerY)
+        else
+            love.graphics.print("Meteor: Ready (T)", 8, powerY)
+        end
+        powerY = powerY + 15
+    end
+    
+    if self.player.arcaneMissile then
+        if self.player.arcaneMissileCooldown > 0 then
+            love.graphics.print("Arcane: " .. string.format("%.1f", self.player.arcaneMissileCooldown) .. "s", 8, powerY)
+        else
+            love.graphics.print("Arcane: Ready (F)", 8, powerY)
+        end
+        powerY = powerY + 15
+    end
+    
+    if self.player.shadowBolt then
+        if self.player.shadowBoltCooldown > 0 then
+            love.graphics.print("Shadow: " .. string.format("%.1f", self.player.shadowBoltCooldown) .. "s", 8, powerY)
+        else
+            love.graphics.print("Shadow: Ready (G)", 8, powerY)
+        end
+        powerY = powerY + 15
+    end
 
     -- Player health bar in HUD
     local hudBarWidth = 120
     local hudBarHeight = 8
-    self:drawHealthBar(self.player, 8, 138, hudBarWidth, hudBarHeight)
-
+    self:drawHealthBar(self.player, 8, powerY + 10, hudBarWidth, hudBarHeight)
+    
     -- XP bar
     local xpPercent = self.player.xp / self.player.xpToNext
     local xpBarWidth = 120
     local xpBarHeight = 6
     love.graphics.setColor(0.2, 0.2, 0.3)
-    love.graphics.rectangle('fill', 8, 152, xpBarWidth, xpBarHeight)
+    love.graphics.rectangle('fill', 8, powerY + 25, xpBarWidth, xpBarHeight)
     love.graphics.setColor(0.2, 0.8, 1.0)
-    love.graphics.rectangle('fill', 8, 152, xpBarWidth * xpPercent, xpBarHeight)
+    love.graphics.rectangle('fill', 8, powerY + 25, xpBarWidth * xpPercent, xpBarHeight)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle('line', 8, 152, xpBarWidth, xpBarHeight)
-
+    love.graphics.rectangle('line', 8, powerY + 25, xpBarWidth, xpBarHeight)
+    
     -- Active bonuses display
     if #self.player.bonuses > 0 then
-        love.graphics.print("Bonuses:", 8, 172)
+        love.graphics.print("Bonuses:", 8, powerY + 45)
         for i, bonus in ipairs(self.player.bonuses) do
             if i <= 5 then  -- Show only first 5 bonuses
                 love.graphics.setColor(bonus.color[1], bonus.color[2], bonus.color[3])
-                love.graphics.print("• " .. bonus.name, 8, 192 + (i-1) * 15)
+                love.graphics.print("• " .. bonus.name, 8, powerY + 65 + (i-1) * 15)
             end
         end
     end
@@ -983,21 +1102,205 @@ function RogueScene:chainLightningAttack(sourceEnemy, chainCount)
     end
 end
 
+function RogueScene:castFireball()
+    if self.player.fireballCooldown > 0 then return end
+    
+    -- Find nearest enemy
+    local nearestEnemy = nil
+    local nearestDistance = math.huge
+    local playerCenterX = self.player.x + self.player.w / 2
+    local playerCenterY = self.player.y + self.player.h / 2
+    
+    for _, enemy in ipairs(self.enemies) do
+        local dx = enemy.x + enemy.w/2 - playerCenterX
+        local dy = enemy.y + enemy.h/2 - playerCenterY
+        local distance = math.sqrt(dx*dx + dy*dy)
+        
+        if distance < nearestDistance then
+            nearestEnemy = enemy
+            nearestDistance = distance
+        end
+    end
+    
+    if nearestEnemy then
+        -- Create fireball projectile
+        self:createProjectile(playerCenterX, playerCenterY, nearestEnemy.x + nearestEnemy.w/2, nearestEnemy.y + nearestEnemy.h/2, "fireball", 3, 200)
+        self.player.fireballCooldown = 2.0
+    end
+end
+
+function RogueScene:castIceShard()
+    if self.player.iceShardCooldown > 0 then return end
+    
+    -- Find nearest enemy
+    local nearestEnemy = nil
+    local nearestDistance = math.huge
+    local playerCenterX = self.player.x + self.player.w / 2
+    local playerCenterY = self.player.y + self.player.h / 2
+    
+    for _, enemy in ipairs(self.enemies) do
+        local dx = enemy.x + enemy.w/2 - playerCenterX
+        local dy = enemy.y + enemy.h/2 - playerCenterY
+        local distance = math.sqrt(dx*dx + dy*dy)
+        
+        if distance < nearestDistance then
+            nearestEnemy = enemy
+            nearestDistance = distance
+        end
+    end
+    
+    if nearestEnemy then
+        -- Create ice shard projectile
+        self:createProjectile(playerCenterX, playerCenterY, nearestEnemy.x + nearestEnemy.w/2, nearestEnemy.y + nearestEnemy.h/2, "ice_shard", 2, 150)
+        self.player.iceShardCooldown = 1.5
+    end
+end
+
+function RogueScene:castLightningBolt()
+    if self.player.lightningBoltCooldown > 0 then return end
+    
+    -- Find nearest enemy
+    local nearestEnemy = nil
+    local nearestDistance = math.huge
+    local playerCenterX = self.player.x + self.player.w / 2
+    local playerCenterY = self.player.y + self.player.h / 2
+    
+    for _, enemy in ipairs(self.enemies) do
+        local dx = enemy.x + enemy.w/2 - playerCenterX
+        local dy = enemy.y + enemy.h/2 - playerCenterY
+        local distance = math.sqrt(dx*dx + dy*dy)
+        
+        if distance < nearestDistance then
+            nearestEnemy = enemy
+            nearestDistance = distance
+        end
+    end
+    
+    if nearestEnemy then
+        -- Chain lightning effect
+        self:chainLightningAttack(nearestEnemy, 3)
+        self.player.lightningBoltCooldown = 3.0
+    end
+end
+
+function RogueScene:castMeteor()
+    if self.player.meteorCooldown > 0 then return end
+    
+    -- Find random enemy
+    if #self.enemies > 0 then
+        local targetEnemy = self.enemies[math.random(1, #self.enemies)]
+        -- Create meteor projectile from above
+        self:createProjectile(targetEnemy.x + targetEnemy.w/2, -50, targetEnemy.x + targetEnemy.w/2, targetEnemy.y + targetEnemy.h/2, "meteor", 5, 100)
+        self.player.meteorCooldown = 4.0
+    end
+end
+
+function RogueScene:castArcaneMissile()
+    if self.player.arcaneMissileCooldown > 0 then return end
+    
+    -- Find nearest 3 enemies
+    local playerCenterX = self.player.x + self.player.w / 2
+    local playerCenterY = self.player.y + self.player.h / 2
+    local enemiesByDistance = {}
+    
+    for _, enemy in ipairs(self.enemies) do
+        local dx = enemy.x + enemy.w/2 - playerCenterX
+        local dy = enemy.y + enemy.h/2 - playerCenterY
+        local distance = math.sqrt(dx*dx + dy*dy)
+        table.insert(enemiesByDistance, {enemy = enemy, distance = distance})
+    end
+    
+    table.sort(enemiesByDistance, function(a, b) return a.distance < b.distance end)
+    
+    for i = 1, math.min(3, #enemiesByDistance) do
+        local target = enemiesByDistance[i].enemy
+        self:createProjectile(playerCenterX, playerCenterY, target.x + target.w/2, target.y + target.h/2, "arcane_missile", 1, 300)
+    end
+    
+    self.player.arcaneMissileCooldown = 1.0
+end
+
+function RogueScene:castShadowBolt()
+    if self.player.shadowBoltCooldown > 0 then return end
+    
+    -- Find nearest enemy
+    local nearestEnemy = nil
+    local nearestDistance = math.huge
+    local playerCenterX = self.player.x + self.player.w / 2
+    local playerCenterY = self.player.y + self.player.h / 2
+    
+    for _, enemy in ipairs(self.enemies) do
+        local dx = enemy.x + enemy.w/2 - playerCenterX
+        local dy = enemy.y + enemy.h/2 - playerCenterY
+        local distance = math.sqrt(dx*dx + dy*dy)
+        
+        if distance < nearestDistance then
+            nearestEnemy = enemy
+            nearestDistance = distance
+        end
+    end
+    
+    if nearestEnemy then
+        -- Create shadow bolt projectile
+        self:createProjectile(playerCenterX, playerCenterY, nearestEnemy.x + nearestEnemy.w/2, nearestEnemy.y + nearestEnemy.h/2, "shadow_bolt", 4, 250)
+        self.player.shadowBoltCooldown = 2.5
+    end
+end
+
+function RogueScene:createProjectile(startX, startY, targetX, targetY, type, damage, speed)
+    -- Simple projectile system - for now just deal damage immediately
+    -- In a full implementation, you'd create projectile objects
+    
+    local dx = targetX - startX
+    local dy = targetY - startY
+    local distance = math.sqrt(dx*dx + dy*dy)
+    
+    if distance > 0 then
+        -- Find enemies in the path
+        for _, enemy in ipairs(self.enemies) do
+            local enemyX = enemy.x + enemy.w/2
+            local enemyY = enemy.y + enemy.h/2
+            
+            -- Check if enemy is in the path (simplified)
+            local enemyDx = enemyX - startX
+            local enemyDy = enemyY - startY
+            local dot = (dx * enemyDx + dy * enemyDy) / (distance * distance)
+            
+            if dot >= 0 and dot <= 1 then
+                local projDx = enemyX - startX
+                local projDy = enemyY - startY
+                local projDistance = math.sqrt(projDx*projDx + projDy*projDy)
+                local lineDistance = math.abs(dx * enemyDy - dy * enemyDx) / distance
+                
+                if lineDistance < 20 and projDistance <= distance then  -- Within 20 pixels of line
+                    enemy:takeDamage(damage, love.timer.getTime())
+                    
+                    -- Special effects
+                    if type == "ice_shard" then
+                        -- Slow enemy (simplified)
+                        enemy.speed = enemy.speed * 0.5
+                    end
+                end
+            end
+        end
+    end
+end
+
 function RogueScene:updatePassiveBonuses(dt)
     local currentTime = love.timer.getTime()
-
+    
     -- Health regeneration
     if self.player.healthRegen and currentTime - self.player.lastHealthRegen >= 3.0 then
         self.player.hp = math.min(self.player.maxHp, self.player.hp + self.player.healthRegen)
         self.player.lastHealthRegen = currentTime
     end
-
+    
     -- XP Rain
     if self.player.xpRain and currentTime - self.player.lastXPRain >= 1.0 then
         self.player:addXP(self.player.xpRain)
         self.player.lastXPRain = currentTime
     end
-
+    
     -- God Mode
     if self.player.godMode and currentTime - self.player.lastGodMode >= 2.0 then
         for _, enemy in ipairs(self.enemies) do
@@ -1005,7 +1308,7 @@ function RogueScene:updatePassiveBonuses(dt)
         end
         self.player.lastGodMode = currentTime
     end
-
+    
     -- Teleport
     if self.player.teleport and currentTime - self.player.lastTeleport >= 5.0 then
         local x, y = self:randomFloorTile()

@@ -53,7 +53,15 @@ local BONUS_DEFINITIONS = {
     {id = "piercing_attack", name = "Piercing Strike", description = "Attack pierces through enemies", rarity = "epic", effect = "piercing_attack", value = 1},
     {id = "multi_strike", name = "Double Strike", description = "Attack twice per use", rarity = "epic", effect = "multi_strike", value = 1},
     {id = "chain_lightning", name = "Chain Lightning", description = "Attack chains to nearby enemies", rarity = "legendary", effect = "chain_lightning", value = 3},
-    {id = "explosive_attack", name = "Explosive Strike", description = "Attack creates explosion on impact", rarity = "legendary", effect = "explosive_attack", value = 2}
+    {id = "explosive_attack", name = "Explosive Strike", description = "Attack creates explosion on impact", rarity = "legendary", effect = "explosive_attack", value = 2},
+    
+    -- Magical Powers
+    {id = "fireball", name = "Fireball", description = "Cast fireballs at enemies (Q key)", rarity = "common", effect = "fireball", value = 1},
+    {id = "ice_shard", name = "Ice Shard", description = "Cast ice shards that slow enemies (E key)", rarity = "rare", effect = "ice_shard", value = 1},
+    {id = "lightning_bolt", name = "Lightning Bolt", description = "Cast lightning that chains between enemies (R key)", rarity = "epic", effect = "lightning_bolt", value = 1},
+    {id = "meteor", name = "Meteor", description = "Summon meteors from the sky (T key)", rarity = "legendary", effect = "meteor", value = 1},
+    {id = "arcane_missile", name = "Arcane Missile", description = "Rapid-fire magical projectiles (F key)", rarity = "rare", effect = "arcane_missile", value = 1},
+    {id = "shadow_bolt", name = "Shadow Bolt", description = "Dark energy that pierces through enemies (G key)", rarity = "epic", effect = "shadow_bolt", value = 1}
 }
 
 function Bonus.new(definition, level)
@@ -115,13 +123,13 @@ function BonusSelection:generateBonuses(count, playerBonuses)
         local attempts = 0
         local bonusDef = nil
         local randomIndex = nil
-        
+
         -- Keep trying until we find a unique bonus
         repeat
             randomIndex = math.random(1, #weightedBonuses)
             bonusDef = weightedBonuses[randomIndex]
             attempts = attempts + 1
-            
+
             -- Check if this bonus is already selected
             local isDuplicate = false
             for _, existingBonus in ipairs(self.bonuses) do
@@ -130,12 +138,12 @@ function BonusSelection:generateBonuses(count, playerBonuses)
                     break
                 end
             end
-            
+
             if not isDuplicate or attempts > 50 then  -- Give up after 50 attempts
                 break
             end
         until false
-        
+
         -- Check if player already has this bonus
         local existingLevel = 1
         if playerBonuses then
@@ -146,7 +154,7 @@ function BonusSelection:generateBonuses(count, playerBonuses)
                 end
             end
         end
-        
+
         table.insert(self.bonuses, Bonus.new(bonusDef, existingLevel))
 
         -- Remove this bonus from the pool to avoid duplicates
