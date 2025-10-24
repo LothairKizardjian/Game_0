@@ -575,7 +575,7 @@ function RogueScene:renderHUD()
     -- Player health bar in HUD
     local hudBarWidth = 120
     local hudBarHeight = 8
-    self:drawHealthBar(self.player, 8, powerY + 10, hudBarWidth, hudBarHeight)
+    self:drawHealthBar(self.player, 8, 120, hudBarWidth, hudBarHeight)
 
     -- XP bar
     local xpPercent = self.player.xp / self.player.xpToNext
