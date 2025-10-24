@@ -197,6 +197,17 @@ function Entity:applyPower(power)
             local OrbitingBlades = require('game.bonus').OrbitingBlades
             self.orbitingBlades = OrbitingBlades.new(power.level)
         end
+    elseif power.id == "meteor" then
+        if self.meteor then
+            -- Upgrade existing meteor
+            self.meteor.level = self.meteor.level + 1
+            self.meteor.damage = 3 * self.meteor.level
+            self.meteor.maxMeteors = math.min(3, math.floor(self.meteor.level / 2) + 1)
+        else
+            -- Create new meteor
+            local Meteor = require('game.bonus').Meteor
+            self.meteor = Meteor.new(power.level)
+        end
     end
 end
 
@@ -207,6 +218,11 @@ function Entity:updatePowers(dt, enemies)
     if self.orbitingBlades then
         self.orbitingBlades:update(dt, self.x, self.y, self.w, self.h, enemies)
     end
+    
+    -- Update meteor
+    if self.meteor then
+        self.meteor:update(dt, self.x, self.y, self.w, self.h, enemies)
+    end
 end
 
 function Entity:renderPowers()
@@ -215,6 +231,11 @@ function Entity:renderPowers()
     -- Render orbiting blades
     if self.orbitingBlades then
         self.orbitingBlades:render()
+    end
+    
+    -- Render meteor
+    if self.meteor then
+        self.meteor:render()
     end
 end
 

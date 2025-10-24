@@ -85,9 +85,10 @@ local RARITY_COLORS = {
     godly = {1.0, 1.0, 1.0}
 }
 
--- Power definitions - Only Orbiting Blades for now
+-- Power definitions
 local POWER_DEFINITIONS = {
-    {id = "orbiting_blades", name = "Orbiting Blades", description = "3 blades orbit around you, dealing damage on contact", rarity = "rare", baseDamage = 2, baseRadius = 60}
+    {id = "orbiting_blades", name = "Orbiting Blades", description = "3 blades orbit around you, dealing damage on contact", rarity = "rare", baseDamage = 2, baseRadius = 60},
+    {id = "meteor", name = "Meteor", description = "Meteors fall from the sky dealing damage on impact", rarity = "epic", baseDamage = 3, baseRadius = 40}
 }
 
 -- Orbiting Blades Power Implementation
@@ -157,6 +158,87 @@ function OrbitingBlades:render()
     end
 end
 
+-- Meteor Power Implementation
+local Meteor = {}
+Meteor.__index = Meteor
+
+function Meteor.new(level)
+    local self = setmetatable({}, Meteor)
+    
+    self.level = level or 1
+    self.damage = 3 * self.level
+    self.radius = 40
+    self.meteors = {}
+    self.spawnTimer = 0
+    self.spawnInterval = 2.0  -- Spawn every 2 seconds
+    self.maxMeteors = math.min(3, math.floor(self.level / 2) + 1)  -- More meteors at higher levels
+    
+    return self
+end
+
+function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
+    self.spawnTimer = self.spawnTimer + dt
+    
+    -- Spawn new meteors
+    if self.spawnTimer >= self.spawnInterval and #self.meteors < self.maxMeteors then
+        self:spawnMeteor(playerX, playerY)
+        self.spawnTimer = 0
+    end
+    
+    -- Update existing meteors
+    for i = #self.meteors, 1, -1 do
+        local meteor = self.meteors[i]
+        meteor.y = meteor.y + meteor.speed * dt
+        
+        -- Check if meteor hit ground or enemy
+        if meteor.y >= meteor.targetY then
+            -- Check for enemy hits
+            for _, enemy in ipairs(enemies) do
+                local dx = meteor.x - (enemy.x + enemy.w/2)
+                local dy = meteor.y - (enemy.y + enemy.h/2)
+                local distance = math.sqrt(dx*dx + dy*dy)
+                
+                if distance <= self.radius then
+                    enemy:takeDamage(self.damage, love.timer.getTime())
+                end
+            end
+            
+            -- Remove meteor
+            table.remove(self.meteors, i)
+        end
+    end
+end
+
+function Meteor:spawnMeteor(playerX, playerY)
+    local meteor = {
+        x = playerX + (math.random() - 0.5) * 200,  -- Random position around player
+        y = -50,  -- Start above screen
+        targetY = playerY + math.random(-50, 50),  -- Target near player
+        speed = 200 + math.random(0, 100),  -- Random fall speed
+        size = 8 + math.random(0, 4)  -- Random size
+    }
+    
+    table.insert(self.meteors, meteor)
+end
+
+function Meteor:render()
+    for _, meteor in ipairs(self.meteors) do
+        -- Draw meteor
+        love.graphics.setColor(1.0, 0.3, 0.1)  -- Orange-red color
+        love.graphics.circle('fill', meteor.x, meteor.y, meteor.size)
+        
+        -- Draw meteor trail
+        love.graphics.setColor(1.0, 0.6, 0.2)
+        love.graphics.circle('fill', meteor.x, meteor.y - 10, meteor.size * 0.7)
+        
+        -- Draw impact area when close to ground
+        if meteor.y >= meteor.targetY - 20 then
+            love.graphics.setColor(1.0, 0.8, 0.0, 0.3)  -- Yellow impact area
+            love.graphics.circle('fill', meteor.x, meteor.targetY, self.radius)
+        end
+    end
+end
+
 -- Power Selection System
 local PowerSelection = {}
 PowerSelection.__index = PowerSelection
@@ -176,9 +258,9 @@ end
 function PowerSelection:generatePowers(count)
     self.powers = {}
 
-    -- For now, only offer Orbiting Blades
+    -- Offer random powers from available definitions
     for i = 1, count do
-        local powerDef = POWER_DEFINITIONS[1]  -- Only orbiting blades for now
+        local powerDef = POWER_DEFINITIONS[math.random(1, #POWER_DEFINITIONS)]
 
         -- Check if player already has this power
         local existingLevel = 1
@@ -283,6 +365,7 @@ return {
     Power = Power,
     PowerSelection = PowerSelection,
     OrbitingBlades = OrbitingBlades,
+    Meteor = Meteor,
     POWER_DEFINITIONS = POWER_DEFINITIONS,
     RARITY_COLORS = RARITY_COLORS
 }
