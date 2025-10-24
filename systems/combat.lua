@@ -306,14 +306,27 @@ function CombatSystem:chainLightningAttack(sourceEnemy, chainCount, enemies, pla
         end
     end
     
-    -- Damage all chained enemies
-    for _, enemy in ipairs(chainedEnemies) do
+    -- Damage all chained enemies and create animations
+    for i, enemy in ipairs(chainedEnemies) do
         if enemy ~= chainedEnemies[1] then  -- Don't damage the original target again
             local damage = player.autoAttackDamage
             if math.random() < player.critChance then
                 damage = damage * 2
             end
             enemy:takeDamage(damage, love.timer.getTime())
+            
+            -- Create chain lightning animation
+            if i > 1 then  -- Don't animate from first enemy to itself
+                local prevEnemy = chainedEnemies[i-1]
+                local x1 = prevEnemy.x + prevEnemy.w/2
+                local y1 = prevEnemy.y + prevEnemy.h/2
+                local x2 = enemy.x + enemy.w/2
+                local y2 = enemy.y + enemy.h/2
+                
+                animationSystem:addAnimation("chain_lightning", x1, y1, 0, 0, 0.3, {0.8, 0.8, 1}, {
+                    x1 = x1, y1 = y1, x2 = x2, y2 = y2, alpha = 1.0
+                })
+            end
         end
     end
 end
