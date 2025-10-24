@@ -277,7 +277,7 @@ function RogueScene:update(dt)
             -- Calculate XP based on time elapsed (tier scaling)
             local timeElapsed = love.timer.getTime() - self.enemySpawner.startTime
             local xpValue = math.floor(1 + timeElapsed / 30)  -- +1 XP every 30 seconds
-            
+
             -- Drop XP shards with scaled value
             self.xpShardManager:addShard(enemy.x + enemy.w/2, enemy.y + enemy.h/2, xpValue)
             self.player.enemiesKilled = self.player.enemiesKilled + 1

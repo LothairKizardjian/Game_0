@@ -56,12 +56,12 @@ local BONUS_DEFINITIONS = {
     {id = "explosive_attack", name = "Explosive Strike", description = "Attack creates explosion on impact", rarity = "legendary", effect = "explosive_attack", value = 2},
 
     -- Magical Powers
-    {id = "fireball", name = "Fireball", description = "Cast fireballs at enemies (Q key)", rarity = "common", effect = "fireball", value = 1},
-    {id = "ice_shard", name = "Ice Shard", description = "Cast ice shards that slow enemies (E key)", rarity = "rare", effect = "ice_shard", value = 1},
-    {id = "lightning_bolt", name = "Lightning Bolt", description = "Cast lightning that chains between enemies (R key)", rarity = "epic", effect = "lightning_bolt", value = 1},
-    {id = "meteor", name = "Meteor", description = "Summon meteors from the sky (T key)", rarity = "legendary", effect = "meteor", value = 1},
-    {id = "arcane_missile", name = "Arcane Missile", description = "Rapid-fire magical projectiles (F key)", rarity = "rare", effect = "arcane_missile", value = 1},
-    {id = "shadow_bolt", name = "Shadow Bolt", description = "Dark energy that pierces through enemies (G key)", rarity = "epic", effect = "shadow_bolt", value = 1}
+    {id = "fireball", name = "Fireball", description = "Automatically cast fireballs at enemies", rarity = "common", effect = "fireball", value = 1},
+    {id = "ice_shard", name = "Ice Shard", description = "Automatically cast ice shards that slow enemies", rarity = "rare", effect = "ice_shard", value = 1},
+    {id = "lightning_bolt", name = "Lightning Bolt", description = "Automatically cast lightning that chains between enemies", rarity = "epic", effect = "lightning_bolt", value = 1},
+    {id = "meteor", name = "Meteor", description = "Automatically summon meteors from the sky", rarity = "legendary", effect = "meteor", value = 1},
+    {id = "arcane_missile", name = "Arcane Missile", description = "Automatically fire rapid magical projectiles", rarity = "rare", effect = "arcane_missile", value = 1},
+    {id = "shadow_bolt", name = "Shadow Bolt", description = "Automatically cast dark energy that pierces through enemies", rarity = "epic", effect = "shadow_bolt", value = 1}
 }
 
 function Bonus.new(definition, level)
