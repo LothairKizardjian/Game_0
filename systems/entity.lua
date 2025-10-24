@@ -59,6 +59,8 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.multiStrike = 1
         self.chainLightning = 0
         self.explosiveAttack = 0
+        self.speedBurst = 0
+        self.speedBurstTime = 0
         
         -- Magical Powers
         self.fireball = false
