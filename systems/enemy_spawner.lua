@@ -1,0 +1,96 @@
+-- Enemy Spawning System for Game_0
+-- Handles enemy spawning, scaling, and management
+
+local EnemySpawner = {}
+EnemySpawner.__index = EnemySpawner
+
+function EnemySpawner.new()
+    local self = setmetatable({}, EnemySpawner)
+    
+    self.spawnTimer = 0
+    self.startTime = love.timer.getTime()
+    
+    return self
+end
+
+function EnemySpawner:update(dt, enemies, player, infiniteMap)
+    self.spawnTimer = self.spawnTimer + dt
+    local timeElapsed = love.timer.getTime() - self.startTime
+    local spawnRate = math.min(0.5, 3.0 - timeElapsed * 0.1)  -- Spawn faster over time
+    local maxEnemies = math.min(50, 20 + timeElapsed * 2)  -- More enemies over time
+    
+    if self.spawnTimer >= spawnRate and #enemies < maxEnemies then
+        self:spawnEnemy(enemies, player, infiniteMap)
+        self.spawnTimer = 0
+    end
+end
+
+function EnemySpawner:spawnEnemy(enemies, player, infiniteMap)
+    -- Find a random floor tile away from player
+    local attempts = 0
+    local x, y
+    repeat
+        x, y = infiniteMap:randomFloorTile(player.x, player.y)
+        attempts = attempts + 1
+        
+        -- Check distance from player
+        local playerTileX = math.floor(player.x / 32) + 1
+        local playerTileY = math.floor(player.y / 32) + 1
+        local distance = math.sqrt((x - playerTileX)^2 + (y - playerTileY)^2)
+        
+        if distance >= 5 or attempts > 20 then  -- At least 5 tiles away or give up
+            break
+        end
+    until false
+    
+    -- Create enemy
+    local enemySize = 32 - 8
+    local enemy = {
+        x = x * 32 + 4,
+        y = y * 32 + 4,
+        w = enemySize,
+        h = enemySize,
+        color = {220/255, 80/255, 80/255},
+        speed = 60,
+        hp = 3,
+        maxHp = 3,
+        isPlayer = false,
+        damageCooldown = 0.5,
+        lastDamageTime = 0
+    }
+    
+    -- Add enemy methods
+    enemy.getRect = function(self)
+        return {x = self.x, y = self.y, w = self.w, h = self.h}
+    end
+    
+    enemy.collidesWith = function(self, other)
+        return self.x < other.x + other.w and
+               self.x + self.w > other.x and
+               self.y < other.y + other.h and
+               self.y + self.h > other.y
+    end
+    
+    enemy.takeDamage = function(self, damage, currentTime)
+        if currentTime - self.lastDamageTime < self.damageCooldown then
+            return false
+        end
+        
+        self.hp = self.hp - damage
+        self.lastDamageTime = currentTime
+        
+        if self.hp <= 0 then
+            self.hp = 0
+        end
+        
+        return true
+    end
+    
+    enemy.getHealthPercent = function(self)
+        return self.hp / self.maxHp
+    end
+    
+    table.insert(enemies, enemy)
+end
+
+return EnemySpawner

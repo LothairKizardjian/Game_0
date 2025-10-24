@@ -100,7 +100,7 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.meteorCooldown = 0
         self.arcaneMissileCooldown = 0
         self.shadowBoltCooldown = 0
-        
+
         -- Animation properties
         self.animationTime = 0
         self.animations = {}
@@ -405,7 +405,7 @@ function RogueScene.new()
 
     -- Initialize bonus selection at start
     self:showBonusSelection()
-    
+
     -- Initialize start time for scaling
     self.startTime = love.timer.getTime()
 
@@ -700,13 +700,13 @@ function RogueScene:update(dt)
 
     -- Update infinite map
     self:updateInfiniteMap()
-    
+
     -- Scaling enemy spawning system
     self.enemySpawnTimer = self.enemySpawnTimer + dt
     local timeElapsed = love.timer.getTime() - (self.startTime or love.timer.getTime())
     local spawnRate = math.min(0.5, 3.0 - timeElapsed * 0.1)  -- Spawn faster over time
     local maxEnemies = math.min(50, 20 + timeElapsed * 2)  -- More enemies over time
-    
+
     if self.enemySpawnTimer >= spawnRate and #self.enemies < maxEnemies then
         self:spawnEnemy()
         self.enemySpawnTimer = 0
@@ -714,10 +714,10 @@ function RogueScene:update(dt)
 
     -- Handle passive bonuses
     self:updatePassiveBonuses(dt)
-    
+
     -- Automatic magical powers
     self:updateAutomaticPowers(dt)
-    
+
     -- Update animations
     self:updateAnimations(dt)
 
@@ -752,7 +752,7 @@ function RogueScene:render()
     local visibleRight = math.floor((self.camera.x + SCREEN_W / self.camera.zoom) / TILE) + 1
     local visibleTop = math.floor(self.camera.y / TILE) - 1
     local visibleBottom = math.floor((self.camera.y + SCREEN_H / self.camera.zoom) / TILE) + 1
-    
+
     for y = visibleTop, visibleBottom do
         for x = visibleLeft, visibleRight do
             local worldX = x * TILE
@@ -800,7 +800,7 @@ function RogueScene:render()
     if self.player.autoAttackCooldown > 0.4 then  -- Show for first 0.1 seconds
         self:drawAttackCone()
     end
-    
+
     -- Draw animations
     self:renderAnimations()
 
@@ -948,7 +948,7 @@ function RogueScene:rectCollidesWalls(rect)
     local rightTile = math.floor((rect.x + rect.w - 1) / TILE)
     local topTile = math.floor(rect.y / TILE)
     local bottomTile = math.floor((rect.y + rect.h - 1) / TILE)
-    
+
     for x = leftTile, rightTile do
         for y = topTile, bottomTile do
             local worldX = x * TILE
@@ -967,13 +967,13 @@ function RogueScene:randomFloorTile()
     while attempts < 100 do
         local worldX = self.player.x + math.random(-200, 200)
         local worldY = self.player.y + math.random(-200, 200)
-        
+
         if self:getTileAtWorldPos(worldX, worldY) == 0 then
             return math.floor(worldX / TILE), math.floor(worldY / TILE)
         end
         attempts = attempts + 1
     end
-    
+
     -- Fallback: return player's position
     return math.floor(self.player.x / TILE), math.floor(self.player.y / TILE)
 end
@@ -1014,21 +1014,21 @@ function RogueScene:generateChunk(chunkX, chunkY)
     if self.loadedChunks[chunkKey] then
         return self.loadedChunks[chunkKey]
     end
-    
+
     local chunk = {
         tiles = {},
         rooms = {},
         enemies = {},
         generated = true
     }
-    
+
     -- Generate tiles for this chunk
     for x = 0, self.chunkSize - 1 do
         chunk.tiles[x] = {}
         for y = 0, self.chunkSize - 1 do
             local worldX = chunkX * self.chunkSize + x
             local worldY = chunkY * self.chunkSize + y
-            
+
             -- Use noise or simple pattern for terrain
             local noise = math.sin(worldX * 0.1) * math.cos(worldY * 0.1)
             if noise > 0.3 then
@@ -1038,7 +1038,7 @@ function RogueScene:generateChunk(chunkX, chunkY)
             end
         end
     end
-    
+
     -- Generate rooms in this chunk
     local numRooms = math.random(1, 3)
     for _ = 1, numRooms do
@@ -1046,7 +1046,7 @@ function RogueScene:generateChunk(chunkX, chunkY)
         local roomY = math.random(2, self.chunkSize - 8)
         local roomW = math.random(4, 8)
         local roomH = math.random(4, 8)
-        
+
         -- Make sure room fits in chunk
         if roomX + roomW < self.chunkSize and roomY + roomH < self.chunkSize then
             for x = roomX, roomX + roomW - 1 do
@@ -1057,7 +1057,7 @@ function RogueScene:generateChunk(chunkX, chunkY)
             table.insert(chunk.rooms, {x = roomX, y = roomY, w = roomW, h = roomH})
         end
     end
-    
+
     self.loadedChunks[chunkKey] = chunk
     return chunk
 end
@@ -1065,10 +1065,10 @@ end
 function RogueScene:getTileAtWorldPos(worldX, worldY)
     local chunkX, chunkY = self:getChunkFromWorldPos(worldX, worldY)
     local chunk = self:generateChunk(chunkX, chunkY)
-    
+
     local localX = math.floor((worldX % (self.chunkSize * TILE)) / TILE)
     local localY = math.floor((worldY % (self.chunkSize * TILE)) / TILE)
-    
+
     if chunk.tiles[localX] and chunk.tiles[localX][localY] then
         return chunk.tiles[localX][localY]
     end
@@ -1078,19 +1078,19 @@ end
 function RogueScene:updateInfiniteMap()
     -- Get player's chunk
     local playerChunkX, playerChunkY = self:getChunkFromWorldPos(self.player.x, self.player.y)
-    
+
     -- Load chunks around player
     for x = playerChunkX - self.chunkRadius, playerChunkX + self.chunkRadius do
         for y = playerChunkY - self.chunkRadius, playerChunkY + self.chunkRadius do
             self:generateChunk(x, y)
         end
     end
-    
+
     -- Unload distant chunks to save memory
     for chunkKey, chunk in pairs(self.loadedChunks) do
         local chunkX, chunkY = chunkKey:match("([^,]+),([^,]+)")
         chunkX, chunkY = tonumber(chunkX), tonumber(chunkY)
-        
+
         local distance = math.sqrt((chunkX - playerChunkX)^2 + (chunkY - playerChunkY)^2)
         if distance > self.chunkRadius + 2 then
             self.loadedChunks[chunkKey] = nil
@@ -1276,7 +1276,7 @@ function RogueScene:castFireball()
     if nearestEnemy then
         -- Create fireball projectile
         self:createProjectile(playerCenterX, playerCenterY, nearestEnemy.x + nearestEnemy.w/2, nearestEnemy.y + nearestEnemy.h/2, "fireball", 3, 200)
-        
+
         -- Add fireball animation
         local dx = nearestEnemy.x + nearestEnemy.w/2 - playerCenterX
         local dy = nearestEnemy.y + nearestEnemy.h/2 - playerCenterY
@@ -1284,7 +1284,7 @@ function RogueScene:castFireball()
         if length > 0 then
             self:addAnimation("fireball", playerCenterX, playerCenterY, dx/length * 200, dy/length * 200, 1.0, {1, 0.3, 0})
         end
-        
+
         self.player.fireballCooldown = 2.0
     end
 end
@@ -1451,27 +1451,27 @@ function RogueScene:updateAutomaticPowers(dt)
     if self.player.fireball and self.player.fireballCooldown <= 0 and #self.enemies > 0 then
         self:castFireball()
     end
-    
+
     -- Automatic ice shard
     if self.player.iceShard and self.player.iceShardCooldown <= 0 and #self.enemies > 0 then
         self:castIceShard()
     end
-    
+
     -- Automatic lightning bolt
     if self.player.lightningBolt and self.player.lightningBoltCooldown <= 0 and #self.enemies > 0 then
         self:castLightningBolt()
     end
-    
+
     -- Automatic meteor
     if self.player.meteor and self.player.meteorCooldown <= 0 and #self.enemies > 0 then
         self:castMeteor()
     end
-    
+
     -- Automatic arcane missile
     if self.player.arcaneMissile and self.player.arcaneMissileCooldown <= 0 and #self.enemies > 0 then
         self:castArcaneMissile()
     end
-    
+
     -- Automatic shadow bolt
     if self.player.shadowBolt and self.player.shadowBoltCooldown <= 0 and #self.enemies > 0 then
         self:castShadowBolt()
@@ -1480,12 +1480,12 @@ end
 
 function RogueScene:updateAnimations(dt)
     self.player.animationTime = self.player.animationTime + dt
-    
+
     -- Update and remove expired animations
     for i = #self.player.animations, 1, -1 do
         local anim = self.player.animations[i]
         anim.life = anim.life - dt
-        
+
         if anim.life <= 0 then
             table.remove(self.player.animations, i)
         else
@@ -1517,7 +1517,7 @@ end
 function RogueScene:renderAnimations()
     for _, anim in ipairs(self.player.animations) do
         love.graphics.setColor(anim.color[1], anim.color[2], anim.color[3], anim.life / 1.0)
-        
+
         if anim.type == "fireball" then
             love.graphics.circle('fill', anim.x, anim.y, 8)
             love.graphics.setColor(1, 0.5, 0, anim.life / 1.0)
@@ -1536,19 +1536,19 @@ end
 
 function RogueScene:updatePassiveBonuses(dt)
     local currentTime = love.timer.getTime()
-    
+
     -- Health regeneration
     if self.player.healthRegen and currentTime - self.player.lastHealthRegen >= 3.0 then
         self.player.hp = math.min(self.player.maxHp, self.player.hp + self.player.healthRegen)
         self.player.lastHealthRegen = currentTime
     end
-    
+
     -- XP Rain
     if self.player.xpRain and currentTime - self.player.lastXPRain >= 1.0 then
         self.player:addXP(self.player.xpRain)
         self.player.lastXPRain = currentTime
     end
-    
+
     -- God Mode
     if self.player.godMode and currentTime - self.player.lastGodMode >= 2.0 then
         for _, enemy in ipairs(self.enemies) do
@@ -1556,7 +1556,7 @@ function RogueScene:updatePassiveBonuses(dt)
         end
         self.player.lastGodMode = currentTime
     end
-    
+
     -- Teleport
     if self.player.teleport and currentTime - self.player.lastTeleport >= 5.0 then
         local x, y = self:randomFloorTile()

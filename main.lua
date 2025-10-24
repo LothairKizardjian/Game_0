@@ -2,7 +2,7 @@
 -- Entry point for the Love2D version
 
 local Engine = require('core.engine')
-local RogueScene = require('game.scene')
+local RogueScene = require('game.scene_refactored')
 
 function love.load()
     -- Set window properties
