@@ -522,6 +522,8 @@ function RogueScene:render()
     self.xpShardManager:render()
 
     -- Draw entities
+    -- Reset color before drawing player sprite
+    love.graphics.setColor(1, 1, 1, 1)
     -- Draw player sprite
     self.spriteSystem:render("player", self.player.x + self.player.w/2, self.player.y + self.player.h/2)
 

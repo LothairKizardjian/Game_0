@@ -127,6 +127,9 @@ function SpriteSystem:render(name, x, y, rotation, scale)
         sprite.frameWidth / 2,
         sprite.frameHeight / 2
     )
+    
+    -- Always reset color to white after drawing sprite
+    love.graphics.setColor(1, 1, 1, 1)
 end
 
 function SpriteSystem:setDirection(name, direction)
