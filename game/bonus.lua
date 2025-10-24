@@ -54,7 +54,7 @@ local BONUS_DEFINITIONS = {
     {id = "multi_strike", name = "Double Strike", description = "Attack twice per use", rarity = "epic", effect = "multi_strike", value = 1},
     {id = "chain_lightning", name = "Chain Lightning", description = "Attack chains to nearby enemies", rarity = "legendary", effect = "chain_lightning", value = 3},
     {id = "explosive_attack", name = "Explosive Strike", description = "Attack creates explosion on impact", rarity = "legendary", effect = "explosive_attack", value = 2},
-    
+
     -- Magical Powers
     {id = "fireball", name = "Fireball", description = "Cast fireballs at enemies (Q key)", rarity = "common", effect = "fireball", value = 1},
     {id = "ice_shard", name = "Ice Shard", description = "Cast ice shards that slow enemies (E key)", rarity = "rare", effect = "ice_shard", value = 1},
