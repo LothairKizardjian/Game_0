@@ -44,39 +44,12 @@ function InfiniteMap:generateChunk(chunkX, chunkY)
             local worldX = chunkX * self.chunkSize + x
             local worldY = chunkY * self.chunkSize + y
 
-            -- Ensure origin is always floor
-            if worldX == 0 and worldY == 0 then
-                chunk.tiles[x][y] = 0  -- Floor
-            else
-                -- Use noise or simple pattern for terrain
-                local noise = math.sin(worldX * 0.1) * math.cos(worldY * 0.1)
-                if noise > -0.3 then  -- Much more floor tiles, fewer obstacles
-                    chunk.tiles[x][y] = 0  -- Floor
-                else
-                    chunk.tiles[x][y] = 1  -- Wall
-                end
-            end
+            -- All tiles are floor - no walls
+            chunk.tiles[x][y] = 0  -- Floor
         end
     end
 
-    -- Generate rooms in this chunk
-    local numRooms = math.random(1, 3)
-    for _ = 1, numRooms do
-        local roomX = math.random(2, self.chunkSize - 8)
-        local roomY = math.random(2, self.chunkSize - 8)
-        local roomW = math.random(4, 8)
-        local roomH = math.random(4, 8)
-
-        -- Make sure room fits in chunk
-        if roomX + roomW < self.chunkSize and roomY + roomH < self.chunkSize then
-            for x = roomX, roomX + roomW - 1 do
-                for y = roomY, roomY + roomH - 1 do
-                    chunk.tiles[x][y] = 0  -- Floor
-                end
-            end
-            table.insert(chunk.rooms, {x = roomX, y = roomY, w = roomW, h = roomH})
-        end
-    end
+    -- Room generation removed - open world
 
     self.loadedChunks[chunkKey] = chunk
     return chunk
