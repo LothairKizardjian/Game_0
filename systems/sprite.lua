@@ -163,14 +163,14 @@ end
 function SpriteSystem:setDirection(name, direction)
     local sprite = self.sprites[name]
     if not sprite then return end
-    
+
     -- Map direction vector to direction name using continuous values
     local directionName = "south"  -- Default
-    
+
     -- Use absolute values to determine dominant direction
     local absX = math.abs(direction.x)
     local absY = math.abs(direction.y)
-    
+
     if absX > absY then
         -- Horizontal movement is dominant
         if direction.x > 0 then
@@ -186,23 +186,23 @@ function SpriteSystem:setDirection(name, direction)
             directionName = "north"
         end
     end
-    
+
     sprite.currentDirection = directionName
 end
 
 function SpriteSystem:setEnemyDirection(name, direction)
     local sprite = self.sprites[name]
-    if not sprite then 
-        return 
+    if not sprite then
+        return
     end
-    
+
     -- Map direction vector to direction name using continuous values
     local directionName = "south"  -- Default
-    
+
     -- Use absolute values to determine dominant direction
     local absX = math.abs(direction.x)
     local absY = math.abs(direction.y)
-    
+
     if absX > absY then
         -- Horizontal movement is dominant
         if direction.x > 0 then
@@ -218,7 +218,7 @@ function SpriteSystem:setEnemyDirection(name, direction)
             directionName = "north"
         end
     end
-    
+
     sprite.currentDirection = directionName
 end
 

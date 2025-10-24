@@ -27,6 +27,34 @@ function Power:getScaledValue(baseValue)
     return baseValue * self.level
 end
 
+function Power:getCurrentDamage()
+    -- Get current damage if player already has this power
+    for _, existingPower in ipairs(self.playerPowers or {}) do
+        if existingPower.id == self.id then
+            return existingPower:getScaledValue(2)  -- Base damage is 2
+        end
+    end
+    return 0  -- Player doesn't have this power yet
+end
+
+function Power:getNewDamage()
+    -- Get damage after leveling up
+    return self:getScaledValue(2)  -- Base damage is 2
+end
+
+function Power:getEnhancedDescription()
+    local currentDamage = self:getCurrentDamage()
+    local newDamage = self:getNewDamage()
+    
+    if currentDamage > 0 then
+        -- Player already has this power - show upgrade
+        return self.description .. "\n\nCurrent: " .. currentDamage .. " damage\nUpgrade to: " .. newDamage .. " damage"
+    else
+        -- New power - show initial damage
+        return self.description .. "\n\nDamage: " .. newDamage
+    end
+end
+
 -- Rarity colors
 local RARITY_COLORS = {
     common = {0.7, 0.7, 0.7},
@@ -140,7 +168,9 @@ function PowerSelection:generatePowers(count)
             end
         end
 
-        table.insert(self.powers, Power.new(powerDef.id, powerDef.name, powerDef.description, powerDef.rarity, existingLevel))
+        local power = Power.new(powerDef.id, powerDef.name, powerDef.description, powerDef.rarity, existingLevel)
+        power.playerPowers = self.playerPowers  -- Pass player powers for damage calculation
+        table.insert(self.powers, power)
     end
 end
 
@@ -213,9 +243,9 @@ function PowerSelection:render()
         love.graphics.setColor(color[1], color[2], color[3])
         love.graphics.printf(power.rarity:upper(), x, y + 50, 200, 'center')
 
-        -- Description
+        -- Description with damage info
         love.graphics.setColor(0.8, 0.8, 0.8)
-        love.graphics.printf(power.description, x + 10, y + 80, 180, 'center')
+        love.graphics.printf(power:getEnhancedDescription(), x + 10, y + 80, 180, 'center')
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)

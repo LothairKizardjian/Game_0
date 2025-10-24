@@ -88,7 +88,7 @@ function Entity:render()
         else
             self.spriteSystem:setEnemyDirection(self.spriteName, self.facingDirection)
         end
-        
+
         -- Reset color and render sprite
         love.graphics.setColor(1, 1, 1, 1)
         self.spriteSystem:render(self.spriteName, self.x + self.w/2, self.y + self.h/2)
