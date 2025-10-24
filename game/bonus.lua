@@ -124,7 +124,7 @@ function BonusSelection:mousepressed(x, y, button)
         for i, bonus in ipairs(self.bonuses) do
             local bonusX = 50 + (i - 1) * 250
             local bonusY = 150
-            
+
             if x >= bonusX and x <= bonusX + 200 and y >= bonusY and y <= bonusY + 300 then
                 self.selectedBonus = bonus
                 break

@@ -110,24 +110,26 @@ function Entity:getHealthPercent()
 end
 
 function Entity:addXP(amount)
-    if not self.isPlayer then return end
-
+    if not self.isPlayer then return false end
+    
     self.xp = self.xp + amount
+    local leveledUp = false
     while self.xp >= self.xpToNext do
-        self:levelUp()
+        leveledUp = self:levelUp() or leveledUp
     end
+    return leveledUp
 end
 
 function Entity:levelUp()
-    if not self.isPlayer then return end
-
+    if not self.isPlayer then return false end
+    
     self.xp = self.xp - self.xpToNext
     self.level = self.level + 1
     self.xpToNext = math.floor(self.xpToNext * 1.5)  -- Exponential XP requirement
-
+    
     -- Heal player on level up
     self.hp = self.maxHp
-
+    
     -- Signal for bonus selection
     return true
 end
@@ -313,7 +315,7 @@ function RogueScene.new()
         local enemySize = TILE - 8
         local enemy = Entity.new(
             x * TILE + 4, y * TILE + 4, enemySize, enemySize,
-            COLOR_ENEMY, 90, 3, false
+            COLOR_ENEMY, 60, 3, false  -- Reduced speed from 90 to 60
         )
         enemy.damageCooldown = 0.5  -- 0.5 second damage cooldown for enemies
         table.insert(self.enemies, enemy)
@@ -336,7 +338,12 @@ function RogueScene.new()
     self.bonusSelection = nil
     self.showingBonusSelection = false
     self.gameOver = false
-
+    
+    -- Enemy spawning system
+    self.enemySpawnTimer = 0
+    self.enemySpawnInterval = 3.0  -- Spawn enemy every 3 seconds
+    self.maxEnemies = 20  -- Maximum enemies on screen
+    
     -- Initialize bonus selection at start
     self:showBonusSelection()
 
@@ -358,6 +365,34 @@ function RogueScene:selectBonus(bonus)
     self.player:applyBonus(bonus)
     self.showingBonusSelection = false
     self.bonusSelection = nil
+end
+
+function RogueScene:spawnEnemy()
+    -- Find a random floor tile away from player
+    local attempts = 0
+    local x, y
+    repeat
+        x, y = self:randomFloorTile()
+        attempts = attempts + 1
+        
+        -- Check distance from player
+        local playerTileX = math.floor(self.player.x / TILE) + 1
+        local playerTileY = math.floor(self.player.y / TILE) + 1
+        local distance = math.sqrt((x - playerTileX)^2 + (y - playerTileY)^2)
+        
+        if distance >= 5 or attempts > 20 then  -- At least 5 tiles away or give up
+            break
+        end
+    until false
+    
+    -- Create enemy
+    local enemySize = TILE - 8
+    local enemy = Entity.new(
+        x * TILE + 4, y * TILE + 4, enemySize, enemySize,
+        COLOR_ENEMY, 60, 3, false
+    )
+    enemy.damageCooldown = 0.5
+    table.insert(self.enemies, enemy)
 end
 
 function RogueScene:onExit()
@@ -383,7 +418,7 @@ function RogueScene:keypressed(key)
     if key == 'space' then
         self:performAutoAttack()
     end
-    
+
     -- Zoom controls
     if key == '=' or key == '+' then
         self.camera.zoom = math.min(self.camera.zoom + 0.5, 4.0)
@@ -550,9 +585,9 @@ function RogueScene:update(dt)
     )
 
     if collectedXP > 0 then
-        self.player:addXP(collectedXP)
+        local leveledUp = self.player:addXP(collectedXP)
         -- Check for level up
-        if self.player.xp >= self.player.xpToNext then
+        if leveledUp then
             self:showBonusSelection()
         end
     end
@@ -560,6 +595,13 @@ function RogueScene:update(dt)
     -- Update auto-attack cooldown
     if self.player.autoAttackCooldown > 0 then
         self.player.autoAttackCooldown = self.player.autoAttackCooldown - dt
+    end
+
+    -- Enemy spawning system
+    self.enemySpawnTimer = self.enemySpawnTimer + dt
+    if self.enemySpawnTimer >= self.enemySpawnInterval and #self.enemies < self.maxEnemies then
+        self:spawnEnemy()
+        self.enemySpawnTimer = 0
     end
 
     -- Handle passive bonuses
@@ -629,10 +671,10 @@ function RogueScene:render()
     -- Draw collect radius (debug)
     if self.player.collectRadiusMultiplier > 1.0 then
         love.graphics.setColor(0.2, 0.8, 1.0, 0.2)
-        love.graphics.circle('fill', self.player.x + self.player.w/2, self.player.y + self.player.h/2, 
+        love.graphics.circle('fill', self.player.x + self.player.w/2, self.player.y + self.player.h/2,
             self.player.collectRadius * self.player.collectRadiusMultiplier)
     end
-    
+
     -- Draw auto-attack cone when attacking
     if self.player.autoAttackCooldown > 0.4 then  -- Show for first 0.1 seconds
         self:drawAttackCone()
@@ -648,7 +690,7 @@ function RogueScene:render()
     love.graphics.print("XP: " .. self.player.xp .. "/" .. self.player.xpToNext, 8, 50)
     love.graphics.print("Enemies: " .. #self.enemies .. " | Killed: " .. self.player.enemiesKilled, 8, 72)
     love.graphics.print("Zoom: " .. string.format("%.1f", self.camera.zoom), 8, 94)
-    
+
     -- Auto-attack cooldown
     if self.player.autoAttackCooldown > 0 then
         love.graphics.print("Attack: " .. string.format("%.1f", self.player.autoAttackCooldown) .. "s", 8, 116)
@@ -660,7 +702,7 @@ function RogueScene:render()
     local hudBarWidth = 120
     local hudBarHeight = 8
     self:drawHealthBar(self.player, 8, 138, hudBarWidth, hudBarHeight)
-    
+
     -- XP bar
     local xpPercent = self.player.xp / self.player.xpToNext
     local xpBarWidth = 120
@@ -671,7 +713,7 @@ function RogueScene:render()
     love.graphics.rectangle('fill', 8, 152, xpBarWidth * xpPercent, xpBarHeight)
     love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle('line', 8, 152, xpBarWidth, xpBarHeight)
-    
+
     -- Active bonuses display
     if #self.player.bonuses > 0 then
         love.graphics.print("Bonuses:", 8, 172)
@@ -762,10 +804,10 @@ end
 
 function RogueScene:performAutoAttack()
     if self.player.autoAttackCooldown > 0 then return end
-    
+
     local playerCenterX = self.player.x + self.player.w / 2
     local playerCenterY = self.player.y + self.player.h / 2
-    
+
     -- Determine attack direction based on last movement
     local attackDirX, attackDirY = 0, 0
     if self.moveDir.x ~= 0 or self.moveDir.y ~= 0 then
@@ -776,25 +818,25 @@ function RogueScene:performAutoAttack()
         attackDirX = 1
         attackDirY = 0
     end
-    
+
     -- Normalize direction
     local length = math.sqrt(attackDirX * attackDirX + attackDirY * attackDirY)
     if length > 0 then
         attackDirX = attackDirX / length
         attackDirY = attackDirY / length
     end
-    
+
     -- Check enemies in cone
     for _, enemy in ipairs(self.enemies) do
         local dx = enemy.x + enemy.w/2 - playerCenterX
         local dy = enemy.y + enemy.h/2 - playerCenterY
         local distance = math.sqrt(dx*dx + dy*dy)
-        
+
         if distance <= self.player.autoAttackRange then
             -- Check if enemy is in cone
             local dot = dx * attackDirX + dy * attackDirY
             local angle = math.acos(math.max(-1, math.min(1, dot / distance)))
-            
+
             if angle <= self.player.autoAttackAngle / 2 then
                 -- Apply damage with crit chance
                 local damage = self.player.autoAttackDamage
@@ -805,7 +847,7 @@ function RogueScene:performAutoAttack()
             end
         end
     end
-    
+
     -- Set cooldown
     self.player.autoAttackCooldown = 0.5  -- 0.5 second cooldown
 end
@@ -813,7 +855,7 @@ end
 function RogueScene:drawAttackCone()
     local playerCenterX = self.player.x + self.player.w / 2
     local playerCenterY = self.player.y + self.player.h / 2
-    
+
     -- Determine attack direction
     local attackDirX, attackDirY = 0, 0
     if self.moveDir.x ~= 0 or self.moveDir.y ~= 0 then
@@ -823,34 +865,34 @@ function RogueScene:drawAttackCone()
         attackDirX = 1
         attackDirY = 0
     end
-    
+
     -- Normalize direction
     local length = math.sqrt(attackDirX * attackDirX + attackDirY * attackDirY)
     if length > 0 then
         attackDirX = attackDirX / length
         attackDirY = attackDirY / length
     end
-    
+
     -- Calculate cone points
     local range = self.player.autoAttackRange
     local halfAngle = self.player.autoAttackAngle / 2
-    
+
     local leftX = attackDirX * math.cos(halfAngle) - attackDirY * math.sin(halfAngle)
     local leftY = attackDirX * math.sin(halfAngle) + attackDirY * math.cos(halfAngle)
     local rightX = attackDirX * math.cos(-halfAngle) - attackDirY * math.sin(-halfAngle)
     local rightY = attackDirX * math.sin(-halfAngle) + attackDirY * math.cos(-halfAngle)
-    
+
     -- Draw cone
     love.graphics.setColor(1, 0.8, 0.2, 0.6)  -- Orange with transparency
-    love.graphics.polygon('fill', 
+    love.graphics.polygon('fill',
         playerCenterX, playerCenterY,
         playerCenterX + leftX * range, playerCenterY + leftY * range,
         playerCenterX + rightX * range, playerCenterY + rightY * range
     )
-    
+
     -- Draw cone outline
     love.graphics.setColor(1, 0.6, 0, 0.8)
-    love.graphics.polygon('line', 
+    love.graphics.polygon('line',
         playerCenterX, playerCenterY,
         playerCenterX + leftX * range, playerCenterY + leftY * range,
         playerCenterX + rightX * range, playerCenterY + rightY * range
@@ -859,19 +901,19 @@ end
 
 function RogueScene:updatePassiveBonuses(dt)
     local currentTime = love.timer.getTime()
-    
+
     -- Health regeneration
     if self.player.healthRegen and currentTime - self.player.lastHealthRegen >= 3.0 then
         self.player.hp = math.min(self.player.maxHp, self.player.hp + self.player.healthRegen)
         self.player.lastHealthRegen = currentTime
     end
-    
+
     -- XP Rain
     if self.player.xpRain and currentTime - self.player.lastXPRain >= 1.0 then
         self.player:addXP(self.player.xpRain)
         self.player.lastXPRain = currentTime
     end
-    
+
     -- God Mode
     if self.player.godMode and currentTime - self.player.lastGodMode >= 2.0 then
         for _, enemy in ipairs(self.enemies) do
@@ -879,7 +921,7 @@ function RogueScene:updatePassiveBonuses(dt)
         end
         self.player.lastGodMode = currentTime
     end
-    
+
     -- Teleport
     if self.player.teleport and currentTime - self.player.lastTeleport >= 5.0 then
         local x, y = self:randomFloorTile()
