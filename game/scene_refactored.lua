@@ -257,12 +257,14 @@ function RogueScene:update(dt)
     -- Combat - enemies damage player on collision
     for _, enemy in ipairs(self.enemies) do
         if self.player:collidesWith(enemy) then
-            -- Check for damage immunity
-            if self.player.damageImmunityTime <= 0 then
+            -- Check for damage immunity and enemy attack cooldown
+            local currentTime = love.timer.getTime()
+            if self.player.damageImmunityTime <= 0 and (currentTime - enemy.lastAttackTime) >= enemy.attackCooldown then
                 local enemyDamage = enemy.attackPower or 1  -- Use enemy's attack power
                 local damage = math.max(1, enemyDamage - self.player.damageReduction)
-                if self.player:takeDamage(damage, love.timer.getTime()) then
+                if self.player:takeDamage(damage, currentTime) then
                     self.player.damageImmunityTime = self.player.damageImmunity
+                    enemy.lastAttackTime = currentTime  -- Update enemy's last attack time
                 end
             end
         end
@@ -341,6 +343,15 @@ function RogueScene:update(dt)
 
     -- Update animations
     self.animationSystem:update(dt)
+    
+    -- Update XP shards
+    local collectedXP = self.xpShardManager:update(dt, self.player.x + self.player.w/2, self.player.y + self.player.h/2, 
+        self.player.collectRadius * self.player.collectRadiusMultiplier, self.player.xpMagnet)
+    
+    -- Add collected XP to player
+    if collectedXP > 0 then
+        self.player.xp = self.player.xp + collectedXP
+    end
 
     -- Update camera to follow player
     self.camera:update(dt, self.player.x, self.player.y, self.player.w, self.player.h)
