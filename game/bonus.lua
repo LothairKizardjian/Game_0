@@ -264,9 +264,18 @@ function PowerSelection:render()
         love.graphics.setColor(color[1], color[2], color[3])
         love.graphics.printf(power.rarity:upper(), x, y + 50, 200, 'center')
 
-        -- Simple description as before
+        -- Description with damage info
+        local damageInfo = power:getDamageInfo()
+        local descriptionText = power.description
+        
+        if damageInfo.hasUpgrade then
+            descriptionText = descriptionText .. "\n\nCurrent: " .. damageInfo.current .. " damage\nUpgrade to: " .. (damageInfo.current + damageInfo.increase) .. " damage"
+        else
+            descriptionText = descriptionText .. "\n\nDamage: " .. damageInfo.current
+        end
+        
         love.graphics.setColor(0.8, 0.8, 0.8)
-        love.graphics.printf(power.description, x + 10, y + 80, 180, 'center')
+        love.graphics.printf(descriptionText, x + 10, y + 80, 180, 'center')
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)
