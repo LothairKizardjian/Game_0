@@ -582,19 +582,19 @@ function RogueScene:renderHUD()
     local xpBarWidth = 120
     local xpBarHeight = 6
     love.graphics.setColor(0.2, 0.2, 0.3)
-    love.graphics.rectangle('fill', 8, powerY + 25, xpBarWidth, xpBarHeight)
+    love.graphics.rectangle('fill', 8, 145, xpBarWidth, xpBarHeight)
     love.graphics.setColor(0.2, 0.8, 1.0)
-    love.graphics.rectangle('fill', 8, powerY + 25, xpBarWidth * xpPercent, xpBarHeight)
+    love.graphics.rectangle('fill', 8, 145, xpBarWidth * xpPercent, xpBarHeight)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle('line', 8, powerY + 25, xpBarWidth, xpBarHeight)
+    love.graphics.rectangle('line', 8, 145, xpBarWidth, xpBarHeight)
 
-    -- Active bonuses display
-    if #self.player.bonuses > 0 then
-        love.graphics.print("Bonuses:", 8, powerY + 45)
-        for i, bonus in ipairs(self.player.bonuses) do
-            if i <= 5 then  -- Show only first 5 bonuses
-                love.graphics.setColor(bonus.color[1], bonus.color[2], bonus.color[3])
-                love.graphics.print("• " .. bonus.name, 8, powerY + 65 + (i-1) * 15)
+    -- Active powers display
+    if #self.player.powers > 0 then
+        love.graphics.print("Powers:", 8, 165)
+        for i, power in ipairs(self.player.powers) do
+            if i <= 5 then  -- Show only first 5 powers
+                love.graphics.setColor(0.8, 0.8, 0.8)
+                love.graphics.print("• " .. power:getDisplayName(), 8, 185 + (i-1) * 15)
             end
         end
     end
