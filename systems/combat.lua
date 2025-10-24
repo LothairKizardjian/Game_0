@@ -293,7 +293,7 @@ function CombatSystem:createProjectile(startX, startY, targetX, targetY, type, d
     local dx = targetX - startX
     local dy = targetY - startY
     local distance = math.sqrt(dx*dx + dy*dy)
-    
+
     if distance > 0 then
         local projectile = {
             x = startX,
@@ -306,7 +306,7 @@ function CombatSystem:createProjectile(startX, startY, targetX, targetY, type, d
             size = 8,
             piercing = (type == "shadow_bolt")
         }
-        
+
         return projectile
     end
     return nil

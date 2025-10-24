@@ -367,7 +367,7 @@ function RogueScene:update(dt)
 
     -- Update projectiles
     self:updateProjectiles(dt)
-    
+
     -- Update damage numbers
     self:updateDamageNumbers(dt)
 
@@ -378,30 +378,30 @@ end
 function RogueScene:updateProjectiles(dt)
     for i = #self.projectiles, 1, -1 do
         local projectile = self.projectiles[i]
-        
+
         -- Update position
         projectile.x = projectile.x + projectile.vx * dt
         projectile.y = projectile.y + projectile.vy * dt
         projectile.life = projectile.life - dt
-        
+
         -- Check collision with enemies
         for _, enemy in ipairs(self.enemies) do
             local dx = projectile.x - (enemy.x + enemy.w/2)
             local dy = projectile.y - (enemy.y + enemy.h/2)
             local distance = math.sqrt(dx*dx + dy*dy)
-            
+
             if distance < projectile.size + enemy.w/2 then
                 -- Hit enemy
                 enemy:takeDamage(projectile.damage, love.timer.getTime())
-                
+
                 -- Add damage number
                 self:addDamageNumber(enemy.x + enemy.w/2, enemy.y, projectile.damage)
-                
+
                 -- Special effects
                 if projectile.type == "ice_shard" then
                     enemy.speed = enemy.speed * 0.5  -- Slow enemy
                 end
-                
+
                 -- Remove projectile unless piercing
                 if not projectile.piercing then
                     table.remove(self.projectiles, i)
@@ -409,7 +409,7 @@ function RogueScene:updateProjectiles(dt)
                 end
             end
         end
-        
+
         -- Remove expired projectiles
         if projectile.life <= 0 then
             table.remove(self.projectiles, i)
@@ -422,7 +422,7 @@ function RogueScene:updateDamageNumbers(dt)
         local damageNum = self.damageNumbers[i]
         damageNum.y = damageNum.y - 50 * dt  -- Float upward
         damageNum.life = damageNum.life - dt
-        
+
         if damageNum.life <= 0 then
             table.remove(self.damageNumbers, i)
         end
