@@ -8,7 +8,7 @@ function love.load()
     -- Set window properties
     love.window.setTitle("Game_0")
     love.window.setMode(800, 576) -- Fixed screen size for larger world
-    
+
     -- Initialize the engine
     Engine.init()
     Engine.pushScene(RogueScene.new())

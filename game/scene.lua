@@ -34,7 +34,10 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
     self.color = color
     self.speed = speed
     self.hp = hp
+    self.maxHp = hp
     self.isPlayer = isPlayer or false
+    self.damageCooldown = 0
+    self.lastDamageTime = 0
     return self
 end
 
@@ -51,6 +54,19 @@ function Entity:collidesWith(other)
            r1.y + r1.h > r2.y
 end
 
+function Entity:takeDamage(damage, currentTime)
+    if currentTime - self.lastDamageTime >= self.damageCooldown then
+        self.hp = math.max(0, self.hp - damage)
+        self.lastDamageTime = currentTime
+        return true
+    end
+    return false
+end
+
+function Entity:getHealthPercent()
+    return self.hp / self.maxHp
+end
+
 -- Map generation with improved algorithm
 local function generateMap(w, h)
     local map = {}
@@ -60,7 +76,7 @@ local function generateMap(w, h)
             map[y][x] = 0
         end
     end
-    
+
     -- Borders
     for x = 1, w do
         map[1][x] = 1
@@ -70,18 +86,18 @@ local function generateMap(w, h)
         map[y][1] = 1
         map[y][w] = 1
     end
-    
+
     -- Generate rooms and corridors
     local rooms = {}
     local numRooms = math.random(8, 15)
-    
+
     -- Create rooms
     for i = 1, numRooms do
         local roomW = math.random(4, 12)
         local roomH = math.random(4, 8)
         local roomX = math.random(2, w - roomW - 1)
         local roomY = math.random(2, h - roomH - 1)
-        
+
         -- Check if room overlaps with existing rooms
         local overlaps = false
         for _, room in ipairs(rooms) do
@@ -91,10 +107,10 @@ local function generateMap(w, h)
                 break
             end
         end
-        
+
         if not overlaps then
             table.insert(rooms, {x = roomX, y = roomY, w = roomW, h = roomH})
-            
+
             -- Clear room area
             for ry = roomY, roomY + roomH - 1 do
                 for rx = roomX, roomX + roomW - 1 do
@@ -103,19 +119,19 @@ local function generateMap(w, h)
             end
         end
     end
-    
+
     -- Connect rooms with corridors
     for i = 2, #rooms do
         local prevRoom = rooms[i-1]
         local currRoom = rooms[i]
-        
+
         -- Horizontal corridor
         local startX = math.min(prevRoom.x + math.floor(prevRoom.w/2), currRoom.x + math.floor(currRoom.w/2))
         local endX = math.max(prevRoom.x + math.floor(prevRoom.w/2), currRoom.x + math.floor(currRoom.w/2))
         for x = startX, endX do
             map[prevRoom.y + math.floor(prevRoom.h/2)][x] = 0
         end
-        
+
         -- Vertical corridor
         local startY = math.min(prevRoom.y + math.floor(prevRoom.h/2), currRoom.y + math.floor(currRoom.h/2))
         local endY = math.max(prevRoom.y + math.floor(prevRoom.h/2), currRoom.y + math.floor(currRoom.h/2))
@@ -123,7 +139,7 @@ local function generateMap(w, h)
             map[y][currRoom.x + math.floor(currRoom.w/2)] = 0
         end
     end
-    
+
     -- Add some random obstacles in non-room areas
     for _ = 1, math.random(20, 40) do
         local rx, ry = math.random(2, w-1), math.random(2, h-1)
@@ -142,7 +158,7 @@ local function generateMap(w, h)
             end
         end
     end
-    
+
     return map, rooms
 end
 
@@ -171,10 +187,11 @@ function RogueScene.new()
     local self = setmetatable({}, RogueScene)
 
     self.tilemap, self.rooms = generateMap(GRID_W, GRID_H)
-    
+
     -- Smaller player for easier movement
     local playerSize = TILE - 12  -- Much smaller than before
-    self.player = Entity.new(2 * TILE, 2 * TILE, playerSize, playerSize, COLOR_PLAYER, 150, 5, true)
+    self.player = Entity.new(2 * TILE, 2 * TILE, playerSize, playerSize, COLOR_PLAYER, 150, 10, true)
+    self.player.damageCooldown = 1.0  -- 1 second damage cooldown for player
     self.enemies = {}
 
     -- Create more enemies for larger map
@@ -182,10 +199,12 @@ function RogueScene.new()
     for _ = 1, numEnemies do
         local x, y = self:randomFloorTile()
         local enemySize = TILE - 8
-        table.insert(self.enemies, Entity.new(
+        local enemy = Entity.new(
             x * TILE + 4, y * TILE + 4, enemySize, enemySize,
-            COLOR_ENEMY, 90, 1, false
-        ))
+            COLOR_ENEMY, 90, 3, false
+        )
+        enemy.damageCooldown = 0.5  -- 0.5 second damage cooldown for enemies
+        table.insert(self.enemies, enemy)
     end
 
     self.moveDir = {x = 0, y = 0}
@@ -268,7 +287,9 @@ function RogueScene:update(dt)
     -- Combat - enemies damage player on collision
     for _, enemy in ipairs(self.enemies) do
         if self.player:collidesWith(enemy) then
-            self.player.hp = math.max(0, self.player.hp - 1)
+            if self.player:takeDamage(1, love.timer.getTime()) then
+                -- Player took damage, could add visual feedback here
+            end
         end
     end
 
@@ -311,17 +332,58 @@ function RogueScene:render()
         love.graphics.setColor(enemy.color[1], enemy.color[2], enemy.color[3])
         love.graphics.rectangle('fill', enemy.x, enemy.y, enemy.w, enemy.h)
     end
+    
+    -- Draw health bars for entities
+    -- Player health bar
+    if self.player.hp < self.player.maxHp then
+        self:drawHealthBar(self.player, self.player.x, self.player.y - 8, self.player.w, 4)
+    end
+    
+    -- Enemy health bars
+    for _, enemy in ipairs(self.enemies) do
+        if enemy.hp < enemy.maxHp then
+            self:drawHealthBar(enemy, enemy.x, enemy.y - 6, enemy.w, 3)
+        end
+    end
 
     -- Reset transformation for HUD
     love.graphics.pop()
 
     -- HUD (not affected by camera)
     love.graphics.setColor(COLOR_UI[1], COLOR_UI[2], COLOR_UI[3])
-    love.graphics.print("HP: " .. self.player.hp, 8, 6)
+    love.graphics.print("HP: " .. self.player.hp .. "/" .. self.player.maxHp, 8, 6)
     love.graphics.print("Move: WASD/Arrows — ESC to quit", 8, 28)
     love.graphics.print("Zoom: " .. string.format("%.1f", self.camera.zoom), 8, 50)
     love.graphics.print("Map: " .. GRID_W .. "x" .. GRID_H .. " tiles", 8, 72)
     love.graphics.print("Enemies: " .. #self.enemies, 8, 94)
+    
+    -- Player health bar in HUD
+    local hudBarWidth = 120
+    local hudBarHeight = 8
+    self:drawHealthBar(self.player, 8, 116, hudBarWidth, hudBarHeight)
+end
+
+function RogueScene:drawHealthBar(entity, x, y, width, height)
+    local healthPercent = entity:getHealthPercent()
+    local barWidth = width * healthPercent
+    
+    -- Background (red)
+    love.graphics.setColor(0.8, 0.2, 0.2, 0.8)
+    love.graphics.rectangle('fill', x, y, width, height)
+    
+    -- Health bar (green)
+    if healthPercent > 0.6 then
+        love.graphics.setColor(0.2, 0.8, 0.2, 0.8)
+    elseif healthPercent > 0.3 then
+        love.graphics.setColor(0.8, 0.8, 0.2, 0.8)
+    else
+        love.graphics.setColor(0.8, 0.2, 0.2, 0.8)
+    end
+    love.graphics.rectangle('fill', x, y, barWidth, height)
+    
+    -- Border
+    love.graphics.setColor(1, 1, 1, 0.8)
+    love.graphics.rectangle('line', x, y, width, height)
 end
 
 function RogueScene:moveEntity(entity, dx, dy)
