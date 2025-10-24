@@ -203,7 +203,7 @@ function Entity:applyPower(power)
             self.meteor.level = math.min(10, self.meteor.level + 1)  -- Cap at level 10
             self.meteor.damage = 3 * self.meteor.level
             self.meteor.radius = 40 + (self.meteor.level - 1) * 10  -- Update radius
-            self.meteor.maxMeteors = math.min(5, math.floor(self.meteor.level / 2) + 1)  -- One meteor every 2 levels, max 5
+            self.meteor.maxMeteors = math.min(5, math.floor((self.meteor.level + 1) / 2))  -- One meteor every 2 levels, max 5
         else
             -- Create new meteor
             local Meteor = require('game.bonus').Meteor
