@@ -238,7 +238,7 @@ function RogueScene:update(dt)
         -- Update facing direction when moving
         self.player.facingDirection.x = self.moveDir.x
         self.player.facingDirection.y = self.moveDir.y
-        
+
         -- Update sprite direction and start animation
         self.spriteSystem:setDirection("player", self.player.facingDirection)
         if self.spriteSystem.sprites["player"] then
@@ -247,7 +247,7 @@ function RogueScene:update(dt)
     else
         self.moveDir.x = 0
         self.moveDir.y = 0
-        
+
         -- Stop animation when not moving
         if self.spriteSystem.sprites["player"] then
             self.spriteSystem.sprites["player"].playing = false

@@ -34,8 +34,8 @@ function SpriteSystem:createDirectionalSprite(name, basePath)
     local directionalSprite = {
         sprites = {},
         currentDirection = "south",  -- Default direction
-        frameWidth = 32,
-        frameHeight = 32,
+        frameWidth = 64,  -- Correct size: 64x64 pixels
+        frameHeight = 64,
         frameCount = 4,  -- Assuming 4 frames per direction
         frameDuration = 0.15,  -- Faster animation for walking
         currentFrame = 1,
@@ -43,7 +43,7 @@ function SpriteSystem:createDirectionalSprite(name, basePath)
         playing = true,
         loop = true
     }
-    
+
     -- Load sprites for each direction
     local directions = {"north", "east", "south", "west"}
     for _, dir in ipairs(directions) do
@@ -53,7 +53,7 @@ function SpriteSystem:createDirectionalSprite(name, basePath)
             directionalSprite.sprites[dir] = sprite
         end
     end
-    
+
     self.sprites[name] = directionalSprite
     return directionalSprite
 end
@@ -82,11 +82,11 @@ end
 
 function SpriteSystem:render(name, x, y, rotation, scale)
     local sprite = self.sprites[name]
-    if not sprite then 
+    if not sprite then
         print("Sprite not found: " .. name)
-        return 
+        return
     end
-    
+
     -- Handle fallback sprite (colored rectangle)
     if sprite.isFallback then
         love.graphics.setColor(0.2, 0.6, 1.0)  -- Blue color for player
@@ -94,7 +94,7 @@ function SpriteSystem:render(name, x, y, rotation, scale)
         love.graphics.setColor(1, 1, 1)  -- Reset color
         return
     end
-    
+
     -- Get the sprite for current direction
     local directionSprite = sprite.sprites[sprite.currentDirection]
     if not directionSprite then
@@ -105,18 +105,18 @@ function SpriteSystem:render(name, x, y, rotation, scale)
         love.graphics.setColor(1, 1, 1)
         return
     end
-    
+
     -- Calculate the frame position in the sprite sheet
     local frameX = (sprite.currentFrame - 1) * sprite.frameWidth
     local frameY = 0
-    
+
     -- Create a quad for the current frame
     local quad = love.graphics.newQuad(
         frameX, frameY,
         sprite.frameWidth, sprite.frameHeight,
         directionSprite:getWidth(), directionSprite:getHeight()
     )
-    
+
     love.graphics.draw(
         directionSprite,
         quad,
@@ -154,8 +154,8 @@ function SpriteSystem:createFallbackSprite(name)
     local fallbackSprite = {
         sprites = {},
         currentDirection = "south",
-        frameWidth = 32,
-        frameHeight = 32,
+        frameWidth = 64,  -- Correct size: 64x64 pixels
+        frameHeight = 64,
         frameCount = 1,
         frameDuration = 0.2,
         currentFrame = 1,
