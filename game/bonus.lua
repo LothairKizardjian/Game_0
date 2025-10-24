@@ -43,10 +43,20 @@ local BONUS_DEFINITIONS = {
     {id = "immortality", name = "Divine Protection", description = "Cannot die while above 1 HP", rarity = "godly", effect = "immortality", value = 1},
     {id = "god_mode", name = "Divine Wrath", description = "Deal 5 damage to all enemies every 2 seconds", rarity = "godly", effect = "god_mode", value = 5},
     {id = "xp_rain", name = "Divine Blessing", description = "Gain 1 XP every second", rarity = "godly", effect = "xp_rain", value = 1},
-    {id = "teleport", name = "Divine Movement", description = "Teleport to random location every 5 seconds", rarity = "godly", effect = "teleport", value = 5}
+    {id = "teleport", name = "Divine Movement", description = "Teleport to random location every 5 seconds", rarity = "godly", effect = "teleport", value = 5},
+    
+    -- New Offensive Bonuses
+    {id = "attack_damage", name = "Power Strike", description = "+1 Attack Damage", rarity = "common", effect = "auto_attack_damage", value = 1},
+    {id = "attack_range", name = "Long Reach", description = "+20% Attack Range", rarity = "common", effect = "auto_attack_range", value = 0.2},
+    {id = "attack_speed", name = "Quick Strike", description = "-0.1s Attack Cooldown", rarity = "rare", effect = "auto_attack_speed", value = 0.1},
+    {id = "attack_angle", name = "Wide Arc", description = "+20% Attack Angle", rarity = "rare", effect = "auto_attack_angle", value = 0.2},
+    {id = "piercing_attack", name = "Piercing Strike", description = "Attack pierces through enemies", rarity = "epic", effect = "piercing_attack", value = 1},
+    {id = "multi_strike", name = "Double Strike", description = "Attack twice per use", rarity = "epic", effect = "multi_strike", value = 1},
+    {id = "chain_lightning", name = "Chain Lightning", description = "Attack chains to nearby enemies", rarity = "legendary", effect = "chain_lightning", value = 3},
+    {id = "explosive_attack", name = "Explosive Strike", description = "Attack creates explosion on impact", rarity = "legendary", effect = "explosive_attack", value = 2}
 }
 
-function Bonus.new(definition)
+function Bonus.new(definition, level)
     local self = setmetatable({}, Bonus)
     self.id = definition.id
     self.name = definition.name
@@ -54,12 +64,25 @@ function Bonus.new(definition)
     self.rarity = definition.rarity
     self.effect = definition.effect
     self.value = definition.value
+    self.level = level or 1
     self.color = RARITIES[definition.rarity].color
     return self
 end
 
 function Bonus:getRarityColor()
     return RARITIES[self.rarity].color
+end
+
+function Bonus:getScaledValue()
+    -- Scale value based on level (linear scaling)
+    return self.value * self.level
+end
+
+function Bonus:getDisplayName()
+    if self.level > 1 then
+        return self.name .. " (Lv." .. self.level .. ")"
+    end
+    return self.name
 end
 
 -- Bonus selection system
@@ -75,7 +98,7 @@ function BonusSelection.new()
     return self
 end
 
-function BonusSelection:generateBonuses(count)
+function BonusSelection:generateBonuses(count, playerBonuses)
     self.bonuses = {}
 
     -- Create weighted list of all bonuses
@@ -91,7 +114,19 @@ function BonusSelection:generateBonuses(count)
     for i = 1, count do
         local randomIndex = math.random(1, #weightedBonuses)
         local bonusDef = weightedBonuses[randomIndex]
-        table.insert(self.bonuses, Bonus.new(bonusDef))
+        
+        -- Check if player already has this bonus
+        local existingLevel = 1
+        if playerBonuses then
+            for _, existingBonus in ipairs(playerBonuses) do
+                if existingBonus.id == bonusDef.id then
+                    existingLevel = existingBonus.level + 1
+                    break
+                end
+            end
+        end
+        
+        table.insert(self.bonuses, Bonus.new(bonusDef, existingLevel))
 
         -- Remove this bonus from the pool to avoid duplicates
         table.remove(weightedBonuses, randomIndex)
@@ -159,9 +194,9 @@ function BonusSelection:render()
         love.graphics.setColor(bonus.color[1], bonus.color[2], bonus.color[3])
         love.graphics.rectangle('line', x, y, 200, 300)
 
-        -- Bonus name
+        -- Bonus name with level
         love.graphics.setColor(1, 1, 1)
-        love.graphics.printf(bonus.name, x, y + 20, 200, 'center')
+        love.graphics.printf(bonus:getDisplayName(), x, y + 20, 200, 'center')
 
         -- Rarity
         love.graphics.setColor(bonus.color[1], bonus.color[2], bonus.color[3])

@@ -78,6 +78,12 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.autoAttackDamage = 1
         self.autoAttackRange = 60
         self.autoAttackAngle = math.pi / 3  -- 60 degrees cone
+        self.facingDirection = {x = 1, y = 0}  -- Default facing right
+        self.baseAutoAttackCooldown = 0.5
+        self.piercingAttack = false
+        self.multiStrike = 1
+        self.chainLightning = 0
+        self.explosiveAttack = 0
     end
 
     return self
@@ -111,7 +117,7 @@ end
 
 function Entity:addXP(amount)
     if not self.isPlayer then return false end
-    
+
     self.xp = self.xp + amount
     local leveledUp = false
     while self.xp >= self.xpToNext do
@@ -122,14 +128,14 @@ end
 
 function Entity:levelUp()
     if not self.isPlayer then return false end
-    
+
     self.xp = self.xp - self.xpToNext
     self.level = self.level + 1
     self.xpToNext = math.floor(self.xpToNext * 1.5)  -- Exponential XP requirement
-    
+
     -- Heal player on level up
     self.hp = self.maxHp
-    
+
     -- Signal for bonus selection
     return true
 end
@@ -178,6 +184,22 @@ function Entity:applyBonus(bonus)
         self.xpRain = true
     elseif bonus.effect == "teleport" then
         self.teleport = true
+    elseif bonus.effect == "auto_attack_damage" then
+        self.autoAttackDamage = self.autoAttackDamage + bonus:getScaledValue()
+    elseif bonus.effect == "auto_attack_range" then
+        self.autoAttackRange = self.autoAttackRange * (1 + bonus:getScaledValue())
+    elseif bonus.effect == "auto_attack_speed" then
+        self.baseAutoAttackCooldown = math.max(0.1, self.baseAutoAttackCooldown - bonus:getScaledValue())
+    elseif bonus.effect == "auto_attack_angle" then
+        self.autoAttackAngle = self.autoAttackAngle * (1 + bonus:getScaledValue())
+    elseif bonus.effect == "piercing_attack" then
+        self.piercingAttack = true
+    elseif bonus.effect == "multi_strike" then
+        self.multiStrike = self.multiStrike + bonus:getScaledValue()
+    elseif bonus.effect == "chain_lightning" then
+        self.chainLightning = self.chainLightning + bonus:getScaledValue()
+    elseif bonus.effect == "explosive_attack" then
+        self.explosiveAttack = self.explosiveAttack + bonus:getScaledValue()
     end
 end
 
@@ -338,12 +360,12 @@ function RogueScene.new()
     self.bonusSelection = nil
     self.showingBonusSelection = false
     self.gameOver = false
-    
+
     -- Enemy spawning system
     self.enemySpawnTimer = 0
     self.enemySpawnInterval = 3.0  -- Spawn enemy every 3 seconds
     self.maxEnemies = 20  -- Maximum enemies on screen
-    
+
     -- Initialize bonus selection at start
     self:showBonusSelection()
 
@@ -356,7 +378,7 @@ end
 
 function RogueScene:showBonusSelection()
     self.bonusSelection = BonusSystem.BonusSelection.new()
-    self.bonusSelection:generateBonuses(3)
+    self.bonusSelection:generateBonuses(3, self.player.bonuses)
     self.bonusSelection:onEnter()
     self.showingBonusSelection = true
 end
@@ -374,17 +396,17 @@ function RogueScene:spawnEnemy()
     repeat
         x, y = self:randomFloorTile()
         attempts = attempts + 1
-        
+
         -- Check distance from player
         local playerTileX = math.floor(self.player.x / TILE) + 1
         local playerTileY = math.floor(self.player.y / TILE) + 1
         local distance = math.sqrt((x - playerTileX)^2 + (y - playerTileY)^2)
-        
+
         if distance >= 5 or attempts > 20 then  -- At least 5 tiles away or give up
             break
         end
     until false
-    
+
     -- Create enemy
     local enemySize = TILE - 8
     local enemy = Entity.new(
@@ -479,6 +501,10 @@ function RogueScene:update(dt)
         local length = math.sqrt(x*x + y*y)
         self.moveDir.x = x / length
         self.moveDir.y = y / length
+        
+        -- Update facing direction when moving
+        self.player.facingDirection.x = self.moveDir.x
+        self.player.facingDirection.y = self.moveDir.y
     else
         self.moveDir.x = 0
         self.moveDir.y = 0
@@ -804,67 +830,70 @@ end
 
 function RogueScene:performAutoAttack()
     if self.player.autoAttackCooldown > 0 then return end
-
+    
     local playerCenterX = self.player.x + self.player.w / 2
     local playerCenterY = self.player.y + self.player.h / 2
-
-    -- Determine attack direction based on last movement
-    local attackDirX, attackDirY = 0, 0
-    if self.moveDir.x ~= 0 or self.moveDir.y ~= 0 then
-        attackDirX = self.moveDir.x
-        attackDirY = self.moveDir.y
-    else
-        -- Default to right if no movement
-        attackDirX = 1
-        attackDirY = 0
-    end
-
+    
+    -- Use player's facing direction for attack
+    local attackDirX = self.player.facingDirection.x
+    local attackDirY = self.player.facingDirection.y
+    
     -- Normalize direction
     local length = math.sqrt(attackDirX * attackDirX + attackDirY * attackDirY)
     if length > 0 then
         attackDirX = attackDirX / length
         attackDirY = attackDirY / length
     end
-
-    -- Check enemies in cone
-    for _, enemy in ipairs(self.enemies) do
-        local dx = enemy.x + enemy.w/2 - playerCenterX
-        local dy = enemy.y + enemy.h/2 - playerCenterY
-        local distance = math.sqrt(dx*dx + dy*dy)
-
-        if distance <= self.player.autoAttackRange then
-            -- Check if enemy is in cone
-            local dot = dx * attackDirX + dy * attackDirY
-            local angle = math.acos(math.max(-1, math.min(1, dot / distance)))
-
-            if angle <= self.player.autoAttackAngle / 2 then
-                -- Apply damage with crit chance
-                local damage = self.player.autoAttackDamage
-                if math.random() < self.player.critChance then
-                    damage = damage * 2
+    
+    -- Perform multi-strike attacks
+    for strike = 1, self.player.multiStrike do
+        local hitEnemies = {}
+        
+        -- Check enemies in cone
+        for _, enemy in ipairs(self.enemies) do
+            local dx = enemy.x + enemy.w/2 - playerCenterX
+            local dy = enemy.y + enemy.h/2 - playerCenterY
+            local distance = math.sqrt(dx*dx + dy*dy)
+            
+            if distance <= self.player.autoAttackRange then
+                -- Check if enemy is in cone
+                local dot = dx * attackDirX + dy * attackDirY
+                local angle = math.acos(math.max(-1, math.min(1, dot / distance)))
+                
+                if angle <= self.player.autoAttackAngle / 2 then
+                    -- Apply damage with crit chance
+                    local damage = self.player.autoAttackDamage
+                    if math.random() < self.player.critChance then
+                        damage = damage * 2
+                    end
+                    enemy:takeDamage(damage, love.timer.getTime())
+                    table.insert(hitEnemies, enemy)
+                    
+                    -- Explosive attack
+                    if self.player.explosiveAttack > 0 then
+                        self:createExplosion(enemy.x + enemy.w/2, enemy.y + enemy.h/2, self.player.explosiveAttack)
+                    end
                 end
-                enemy:takeDamage(damage, love.timer.getTime())
             end
         end
+        
+        -- Chain lightning effect
+        if self.player.chainLightning > 0 and #hitEnemies > 0 then
+            self:chainLightningAttack(hitEnemies[1], self.player.chainLightning)
+        end
     end
-
-    -- Set cooldown
-    self.player.autoAttackCooldown = 0.5  -- 0.5 second cooldown
+    
+    -- Set cooldown based on bonuses
+    self.player.autoAttackCooldown = self.player.baseAutoAttackCooldown
 end
 
 function RogueScene:drawAttackCone()
     local playerCenterX = self.player.x + self.player.w / 2
     local playerCenterY = self.player.y + self.player.h / 2
 
-    -- Determine attack direction
-    local attackDirX, attackDirY = 0, 0
-    if self.moveDir.x ~= 0 or self.moveDir.y ~= 0 then
-        attackDirX = self.moveDir.x
-        attackDirY = self.moveDir.y
-    else
-        attackDirX = 1
-        attackDirY = 0
-    end
+    -- Use player's facing direction for attack cone
+    local attackDirX = self.player.facingDirection.x
+    local attackDirY = self.player.facingDirection.y
 
     -- Normalize direction
     local length = math.sqrt(attackDirX * attackDirX + attackDirY * attackDirY)
@@ -899,21 +928,76 @@ function RogueScene:drawAttackCone()
     )
 end
 
+function RogueScene:createExplosion(x, y, damage)
+    -- Find all enemies within explosion radius
+    for _, enemy in ipairs(self.enemies) do
+        local dx = enemy.x + enemy.w/2 - x
+        local dy = enemy.y + enemy.h/2 - y
+        local distance = math.sqrt(dx*dx + dy*dy)
+        
+        if distance <= 40 then  -- Explosion radius
+            enemy:takeDamage(damage, love.timer.getTime())
+        end
+    end
+end
+
+function RogueScene:chainLightningAttack(sourceEnemy, chainCount)
+    local chainedEnemies = {sourceEnemy}
+    local usedEnemies = {[sourceEnemy] = true}
+    
+    for i = 1, chainCount do
+        local nearestEnemy = nil
+        local nearestDistance = math.huge
+        
+        for _, enemy in ipairs(self.enemies) do
+            if not usedEnemies[enemy] then
+                local dx = enemy.x + enemy.w/2 - (sourceEnemy.x + sourceEnemy.w/2)
+                local dy = enemy.y + enemy.h/2 - (sourceEnemy.y + sourceEnemy.h/2)
+                local distance = math.sqrt(dx*dx + dy*dy)
+                
+                if distance < nearestDistance and distance <= 80 then  -- Chain range
+                    nearestEnemy = enemy
+                    nearestDistance = distance
+                end
+            end
+        end
+        
+        if nearestEnemy then
+            table.insert(chainedEnemies, nearestEnemy)
+            usedEnemies[nearestEnemy] = true
+            sourceEnemy = nearestEnemy
+        else
+            break
+        end
+    end
+    
+    -- Damage all chained enemies
+    for _, enemy in ipairs(chainedEnemies) do
+        if enemy ~= chainedEnemies[1] then  -- Don't damage the original target again
+            local damage = self.player.autoAttackDamage
+            if math.random() < self.player.critChance then
+                damage = damage * 2
+            end
+            enemy:takeDamage(damage, love.timer.getTime())
+        end
+    end
+end
+
 function RogueScene:updatePassiveBonuses(dt)
     local currentTime = love.timer.getTime()
-
+    
     -- Health regeneration
     if self.player.healthRegen and currentTime - self.player.lastHealthRegen >= 3.0 then
         self.player.hp = math.min(self.player.maxHp, self.player.hp + self.player.healthRegen)
         self.player.lastHealthRegen = currentTime
     end
-
+    
     -- XP Rain
     if self.player.xpRain and currentTime - self.player.lastXPRain >= 1.0 then
         self.player:addXP(self.player.xpRain)
         self.player.lastXPRain = currentTime
     end
-
+    
     -- God Mode
     if self.player.godMode and currentTime - self.player.lastGodMode >= 2.0 then
         for _, enemy in ipairs(self.enemies) do
@@ -921,7 +1005,7 @@ function RogueScene:updatePassiveBonuses(dt)
         end
         self.player.lastGodMode = currentTime
     end
-
+    
     -- Teleport
     if self.player.teleport and currentTime - self.player.lastTeleport >= 5.0 then
         local x, y = self:randomFloorTile()
