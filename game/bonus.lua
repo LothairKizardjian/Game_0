@@ -264,31 +264,9 @@ function PowerSelection:render()
         love.graphics.setColor(color[1], color[2], color[3])
         love.graphics.printf(power.rarity:upper(), x, y + 50, 200, 'center')
 
-        -- Description with colored damage info on multiple lines
-        local damageInfo = power:getDamageInfo()
-        local baseDescription = "3 blades orbit around you, dealing"
-
-        -- Debug output
-        print("Power damage info: current=" .. damageInfo.current .. ", increase=" .. damageInfo.increase .. ", hasUpgrade=" .. tostring(damageInfo.hasUpgrade))
-
-        -- Render base description in gray on first line
+        -- Simple description as before
         love.graphics.setColor(0.8, 0.8, 0.8)
-        love.graphics.printf(baseDescription, x + 10, y + 80, 180, 'center')
-
-        -- Simple approach: just render the complete text in one color for now
-        local fullText = ""
-        
-        if damageInfo.hasUpgrade then
-            fullText = damageInfo.current .. " ( + " .. damageInfo.increase .. " ) damage."
-        else
-            fullText = damageInfo.current .. " damage."
-        end
-        
-        print("Full damage text: " .. fullText)
-        
-        -- Render the complete text in blue, centered
-        love.graphics.setColor(0.0, 0.8, 1.0)  -- Blue color
-        love.graphics.printf(fullText, x + 10, y + 100, 180, 'center')
+        love.graphics.printf(power.description, x + 10, y + 80, 180, 'center')
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)
