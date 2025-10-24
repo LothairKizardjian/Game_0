@@ -275,7 +275,7 @@ function PowerSelection:render()
         love.graphics.setColor(0.8, 0.8, 0.8)
         love.graphics.printf(baseDescription, x + 10, y + 80, 180, 'center')
 
-        -- Render damage numbers and text separately with proper spacing
+        -- Render damage text with proper character-by-character positioning
         local damageNumbers = ""
         local damageWord = " damage."
         
@@ -286,36 +286,30 @@ function PowerSelection:render()
         end
         
         print("Damage numbers: " .. damageNumbers)
+        print("Damage word: " .. damageWord)
         
-        -- Use a simpler approach: render each part separately with proper spacing
+        -- Calculate the full text width for centering
         local font = love.graphics.getFont()
         local numbersWidth = font:getWidth(damageNumbers)
         local wordWidth = font:getWidth(damageWord)
-        local spaceWidth = font:getWidth(" ")  -- Space between numbers and word
+        local totalWidth = numbersWidth + wordWidth
         
-        -- Calculate total width including space
-        local totalWidth = numbersWidth + spaceWidth + wordWidth
+        -- Center the entire text block
         local startX = x + 10 + (180 - totalWidth) / 2
         
         -- Render damage numbers in blue
-        love.graphics.setColor(0.0, 0.8, 1.0)  -- Bright blue color
+        love.graphics.setColor(0.0, 0.8, 1.0)  -- Blue color
         love.graphics.print(damageNumbers, startX, y + 100)
         
-        -- Render space
-        love.graphics.setColor(1.0, 1.0, 1.0)  -- White color for space
-        love.graphics.print(" ", startX + numbersWidth, y + 100)
-        
-        -- Render "damage." in white
+        -- Render "damage." in white right after the numbers
         love.graphics.setColor(1.0, 1.0, 1.0)  -- White color
-        love.graphics.print(damageWord, startX + numbersWidth + spaceWidth, y + 100)
+        love.graphics.print(damageWord, startX + numbersWidth, y + 100)
         
-        -- Debug: Draw rectangles around the text areas
-        love.graphics.setColor(1.0, 0.0, 0.0)  -- Red debug rectangle for numbers
+        -- Debug rectangles
+        love.graphics.setColor(1.0, 0.0, 0.0)  -- Red for numbers
         love.graphics.rectangle('line', startX, y + 95, numbersWidth, 20)
-        love.graphics.setColor(0.5, 0.5, 0.5)  -- Gray debug rectangle for space
-        love.graphics.rectangle('line', startX + numbersWidth, y + 95, spaceWidth, 20)
-        love.graphics.setColor(0.0, 1.0, 0.0)  -- Green debug rectangle for word
-        love.graphics.rectangle('line', startX + numbersWidth + spaceWidth, y + 95, wordWidth, 20)
+        love.graphics.setColor(0.0, 1.0, 0.0)  -- Green for word
+        love.graphics.rectangle('line', startX + numbersWidth, y + 95, wordWidth, 20)
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)
