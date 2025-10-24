@@ -6,8 +6,8 @@ RogueScene.__index = RogueScene
 
 -- Constants
 local TILE = 32
-local GRID_W, GRID_H = 25, 18
-local SCREEN_W, SCREEN_H = GRID_W * TILE, GRID_H * TILE
+local GRID_W, GRID_H = 50, 35  -- Much larger map
+local SCREEN_W, SCREEN_H = 800, 576  -- Fixed screen size
 
 -- Camera settings
 local CAMERA_ZOOM = 2.0
@@ -51,7 +51,7 @@ function Entity:collidesWith(other)
            r1.y + r1.h > r2.y
 end
 
--- Map generation
+-- Map generation with improved algorithm
 local function generateMap(w, h)
     local map = {}
     for y = 1, h do
@@ -60,7 +60,7 @@ local function generateMap(w, h)
             map[y][x] = 0
         end
     end
-
+    
     -- Borders
     for x = 1, w do
         map[1][x] = 1
@@ -70,14 +70,80 @@ local function generateMap(w, h)
         map[y][1] = 1
         map[y][w] = 1
     end
-
-    -- Random obstacles
-    for _ = 1, 40 do
-        local rx, ry = math.random(2, w-1), math.random(2, h-1)
-        map[ry][rx] = 1
+    
+    -- Generate rooms and corridors
+    local rooms = {}
+    local numRooms = math.random(8, 15)
+    
+    -- Create rooms
+    for i = 1, numRooms do
+        local roomW = math.random(4, 12)
+        local roomH = math.random(4, 8)
+        local roomX = math.random(2, w - roomW - 1)
+        local roomY = math.random(2, h - roomH - 1)
+        
+        -- Check if room overlaps with existing rooms
+        local overlaps = false
+        for _, room in ipairs(rooms) do
+            if roomX < room.x + room.w and roomX + roomW > room.x and
+               roomY < room.y + room.h and roomY + roomH > room.y then
+                overlaps = true
+                break
+            end
+        end
+        
+        if not overlaps then
+            table.insert(rooms, {x = roomX, y = roomY, w = roomW, h = roomH})
+            
+            -- Clear room area
+            for ry = roomY, roomY + roomH - 1 do
+                for rx = roomX, roomX + roomW - 1 do
+                    map[ry][rx] = 0
+                end
+            end
+        end
     end
-
-    return map
+    
+    -- Connect rooms with corridors
+    for i = 2, #rooms do
+        local prevRoom = rooms[i-1]
+        local currRoom = rooms[i]
+        
+        -- Horizontal corridor
+        local startX = math.min(prevRoom.x + math.floor(prevRoom.w/2), currRoom.x + math.floor(currRoom.w/2))
+        local endX = math.max(prevRoom.x + math.floor(prevRoom.w/2), currRoom.x + math.floor(currRoom.w/2))
+        for x = startX, endX do
+            map[prevRoom.y + math.floor(prevRoom.h/2)][x] = 0
+        end
+        
+        -- Vertical corridor
+        local startY = math.min(prevRoom.y + math.floor(prevRoom.h/2), currRoom.y + math.floor(currRoom.h/2))
+        local endY = math.max(prevRoom.y + math.floor(prevRoom.h/2), currRoom.y + math.floor(currRoom.h/2))
+        for y = startY, endY do
+            map[y][currRoom.x + math.floor(currRoom.w/2)] = 0
+        end
+    end
+    
+    -- Add some random obstacles in non-room areas
+    for _ = 1, math.random(20, 40) do
+        local rx, ry = math.random(2, w-1), math.random(2, h-1)
+        if map[ry][rx] == 0 then
+            -- Check if it's not in a room
+            local inRoom = false
+            for _, room in ipairs(rooms) do
+                if rx >= room.x and rx < room.x + room.w and
+                   ry >= room.y and ry < room.y + room.h then
+                    inRoom = true
+                    break
+                end
+            end
+            if not inRoom then
+                map[ry][rx] = 1
+            end
+        end
+    end
+    
+    return map, rooms
 end
 
 -- Collision detection
@@ -104,15 +170,20 @@ end
 function RogueScene.new()
     local self = setmetatable({}, RogueScene)
 
-    self.tilemap = generateMap(GRID_W, GRID_H)
-    self.player = Entity.new(2 * TILE, 2 * TILE, TILE - 6, TILE - 6, COLOR_PLAYER, 150, 5, true)
+    self.tilemap, self.rooms = generateMap(GRID_W, GRID_H)
+    
+    -- Smaller player for easier movement
+    local playerSize = TILE - 12  -- Much smaller than before
+    self.player = Entity.new(2 * TILE, 2 * TILE, playerSize, playerSize, COLOR_PLAYER, 150, 5, true)
     self.enemies = {}
 
-    -- Create enemies
-    for _ = 1, 5 do
+    -- Create more enemies for larger map
+    local numEnemies = math.random(8, 15)
+    for _ = 1, numEnemies do
         local x, y = self:randomFloorTile()
+        local enemySize = TILE - 8
         table.insert(self.enemies, Entity.new(
-            x * TILE + 3, y * TILE + 3, TILE - 6, TILE - 6,
+            x * TILE + 4, y * TILE + 4, enemySize, enemySize,
             COLOR_ENEMY, 90, 1, false
         ))
     end
@@ -249,6 +320,8 @@ function RogueScene:render()
     love.graphics.print("HP: " .. self.player.hp, 8, 6)
     love.graphics.print("Move: WASD/Arrows — ESC to quit", 8, 28)
     love.graphics.print("Zoom: " .. string.format("%.1f", self.camera.zoom), 8, 50)
+    love.graphics.print("Map: " .. GRID_W .. "x" .. GRID_H .. " tiles", 8, 72)
+    love.graphics.print("Enemies: " .. #self.enemies, 8, 94)
 end
 
 function RogueScene:moveEntity(entity, dx, dy)
@@ -290,8 +363,10 @@ function RogueScene:updateCamera(dt)
     -- Apply camera boundaries (prevent camera from going outside map)
     local mapWidth = GRID_W * TILE
     local mapHeight = GRID_H * TILE
-    local maxCameraX = mapWidth - (SCREEN_W / self.camera.zoom)
-    local maxCameraY = mapHeight - (SCREEN_H / self.camera.zoom)
+    local visibleWidth = SCREEN_W / self.camera.zoom
+    local visibleHeight = SCREEN_H / self.camera.zoom
+    local maxCameraX = math.max(0, mapWidth - visibleWidth)
+    local maxCameraY = math.max(0, mapHeight - visibleHeight)
 
     self.camera.targetX = math.max(0, math.min(self.camera.targetX, maxCameraX))
     self.camera.targetY = math.max(0, math.min(self.camera.targetY, maxCameraY))
