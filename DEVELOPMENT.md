@@ -31,12 +31,16 @@ Game_0 is a lightweight, modular roguelike foundation using Love2D (Lua) with si
 - `assets/` — sprites/sfx (placeholder for now)
 
 ## Recent Updates
+- **Combat System**: Implemented damage dealing with cooldown system
+- **Health Bars**: Visual health bars for player and enemies with color coding
+- **Enhanced Combat**: Player (10 HP) and enemies (3 HP) with damage cooldowns
+- **Visual Feedback**: Health bars show damage status with green/yellow/red colors
 - **Large World**: Increased map size from 25x18 to 50x35 tiles
 - **Room Generation**: Implemented procedural room-based map generation
 - **Corridor System**: Rooms connected with horizontal and vertical corridors
 - **Improved Movement**: Smaller player size for easier navigation
 - **Enhanced Enemies**: 8-15 enemies for larger world
-- **Better HUD**: Shows map size, enemy count, and zoom level
+- **Better HUD**: Shows map size, enemy count, zoom level, and health
 - **Camera System**: Smooth following with zoom controls (0.5x to 4.0x)
 - **Camera Boundaries**: Prevents viewing outside map area
 

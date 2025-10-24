@@ -27,9 +27,11 @@ A small, modular roguelike foundation using Love2D (Lua) with simple placeholder
 - **Large Procedural World**: 50x35 tile map with room-based generation
 - **Camera System**: Smooth camera following with zoom (0.5x to 4.0x)
 - **Player Movement**: WASD/Arrow key controls with collision detection
-- **Enemy AI**: 8-15 enemies chase the player with collision-based combat
-- **Dynamic HUD**: Health, zoom level, map size, and enemy count display
+- **Combat System**: Enemies deal damage with cooldown system (1s player, 0.5s enemies)
+- **Health System**: Player (10 HP) and enemies (3 HP) with visual health bars
+- **Dynamic HUD**: Health display, zoom level, map size, and enemy count
 - **Room Generation**: Procedural rooms connected by corridors
+- **Visual Feedback**: Color-coded health bars (green/yellow/red)
 - **Improved Movement**: Smaller player for easier navigation
 
 ## Notes
