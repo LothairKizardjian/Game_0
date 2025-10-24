@@ -274,8 +274,12 @@ function RogueScene:update(dt)
     for i = #self.enemies, 1, -1 do
         local enemy = self.enemies[i]
         if enemy.hp <= 0 then
-            -- Drop XP shards
-            self.xpShardManager:addShard(enemy.x + enemy.w/2, enemy.y + enemy.h/2, 1)
+            -- Calculate XP based on time elapsed (tier scaling)
+            local timeElapsed = love.timer.getTime() - self.enemySpawner.startTime
+            local xpValue = math.floor(1 + timeElapsed / 30)  -- +1 XP every 30 seconds
+            
+            -- Drop XP shards with scaled value
+            self.xpShardManager:addShard(enemy.x + enemy.w/2, enemy.y + enemy.h/2, xpValue)
             self.player.enemiesKilled = self.player.enemiesKilled + 1
 
             -- Apply bonuses
@@ -346,12 +350,12 @@ function RogueScene:update(dt)
 
     -- Update XP shards
     local collectedXP = self.xpShardManager:update(dt, self.player.x + self.player.w/2, self.player.y + self.player.h/2,
-        self.player.collectRadius * self.player.collectRadiusMultiplier, self.player.xpMagnet)
+        self.player.collectRadius * self.player.collectRadiusMultiplier, 200 * self.player.xpMagnet)
 
     -- Add collected XP to player
     if collectedXP > 0 then
         self.player.xp = self.player.xp + collectedXP
-        
+
         -- Check for level up
         while self.player.xp >= self.player.xpToNext do
             self.player:levelUp()
@@ -453,12 +457,7 @@ function RogueScene:render()
         end
     end
 
-    -- Draw collect radius (debug)
-    if self.player.collectRadiusMultiplier > 1.0 then
-        love.graphics.setColor(0.2, 0.8, 1.0, 0.2)
-        love.graphics.circle('fill', self.player.x + self.player.w/2, self.player.y + self.player.h/2,
-            self.player.collectRadius * self.player.collectRadiusMultiplier)
-    end
+    -- Collect radius animation removed
 
     -- Draw auto-attack cone when attacking
     if self.player.autoAttackCooldown > 0.4 then  -- Show for first 0.1 seconds
