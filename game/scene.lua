@@ -74,6 +74,10 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.godMode = false
         self.xpRain = false
         self.teleport = false
+        self.autoAttackCooldown = 0
+        self.autoAttackDamage = 1
+        self.autoAttackRange = 60
+        self.autoAttackAngle = math.pi / 3  -- 60 degrees cone
     end
 
     return self
@@ -375,6 +379,11 @@ function RogueScene:keypressed(key)
         return
     end
 
+    -- Auto-attack
+    if key == 'space' then
+        self:performAutoAttack()
+    end
+    
     -- Zoom controls
     if key == '=' or key == '+' then
         self.camera.zoom = math.min(self.camera.zoom + 0.5, 4.0)
@@ -387,6 +396,21 @@ end
 
 function RogueScene:keyreleased(key)
     self.keys[key] = false
+end
+
+function RogueScene:mousepressed(x, y, button)
+    -- Handle bonus selection mouse clicks
+    if self.showingBonusSelection then
+        self.bonusSelection:mousepressed(x, y, button)
+        if self.bonusSelection.selectedBonus then
+            self:selectBonus(self.bonusSelection.selectedBonus)
+        end
+        return
+    end
+end
+
+function RogueScene:mousereleased(x, y, button)
+    -- Not needed for current functionality
 end
 
 function RogueScene:update(dt)
@@ -533,6 +557,11 @@ function RogueScene:update(dt)
         end
     end
 
+    -- Update auto-attack cooldown
+    if self.player.autoAttackCooldown > 0 then
+        self.player.autoAttackCooldown = self.player.autoAttackCooldown - dt
+    end
+
     -- Handle passive bonuses
     self:updatePassiveBonuses(dt)
 
@@ -600,8 +629,13 @@ function RogueScene:render()
     -- Draw collect radius (debug)
     if self.player.collectRadiusMultiplier > 1.0 then
         love.graphics.setColor(0.2, 0.8, 1.0, 0.2)
-        love.graphics.circle('fill', self.player.x + self.player.w/2, self.player.y + self.player.h/2,
+        love.graphics.circle('fill', self.player.x + self.player.w/2, self.player.y + self.player.h/2, 
             self.player.collectRadius * self.player.collectRadiusMultiplier)
+    end
+    
+    -- Draw auto-attack cone when attacking
+    if self.player.autoAttackCooldown > 0.4 then  -- Show for first 0.1 seconds
+        self:drawAttackCone()
     end
 
     -- Reset transformation for HUD
@@ -614,30 +648,37 @@ function RogueScene:render()
     love.graphics.print("XP: " .. self.player.xp .. "/" .. self.player.xpToNext, 8, 50)
     love.graphics.print("Enemies: " .. #self.enemies .. " | Killed: " .. self.player.enemiesKilled, 8, 72)
     love.graphics.print("Zoom: " .. string.format("%.1f", self.camera.zoom), 8, 94)
+    
+    -- Auto-attack cooldown
+    if self.player.autoAttackCooldown > 0 then
+        love.graphics.print("Attack: " .. string.format("%.1f", self.player.autoAttackCooldown) .. "s", 8, 116)
+    else
+        love.graphics.print("Attack: Ready (SPACE)", 8, 116)
+    end
 
     -- Player health bar in HUD
     local hudBarWidth = 120
     local hudBarHeight = 8
-    self:drawHealthBar(self.player, 8, 116, hudBarWidth, hudBarHeight)
-
+    self:drawHealthBar(self.player, 8, 138, hudBarWidth, hudBarHeight)
+    
     -- XP bar
     local xpPercent = self.player.xp / self.player.xpToNext
     local xpBarWidth = 120
     local xpBarHeight = 6
     love.graphics.setColor(0.2, 0.2, 0.3)
-    love.graphics.rectangle('fill', 8, 130, xpBarWidth, xpBarHeight)
+    love.graphics.rectangle('fill', 8, 152, xpBarWidth, xpBarHeight)
     love.graphics.setColor(0.2, 0.8, 1.0)
-    love.graphics.rectangle('fill', 8, 130, xpBarWidth * xpPercent, xpBarHeight)
+    love.graphics.rectangle('fill', 8, 152, xpBarWidth * xpPercent, xpBarHeight)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle('line', 8, 130, xpBarWidth, xpBarHeight)
-
+    love.graphics.rectangle('line', 8, 152, xpBarWidth, xpBarHeight)
+    
     -- Active bonuses display
     if #self.player.bonuses > 0 then
-        love.graphics.print("Bonuses:", 8, 150)
+        love.graphics.print("Bonuses:", 8, 172)
         for i, bonus in ipairs(self.player.bonuses) do
             if i <= 5 then  -- Show only first 5 bonuses
                 love.graphics.setColor(bonus.color[1], bonus.color[2], bonus.color[3])
-                love.graphics.print("• " .. bonus.name, 8, 170 + (i-1) * 15)
+                love.graphics.print("• " .. bonus.name, 8, 192 + (i-1) * 15)
             end
         end
     end
@@ -719,21 +760,118 @@ function RogueScene:updateCamera(dt)
     self.camera.y = self.camera.y + (self.camera.targetY - self.camera.y) * lerpFactor
 end
 
+function RogueScene:performAutoAttack()
+    if self.player.autoAttackCooldown > 0 then return end
+    
+    local playerCenterX = self.player.x + self.player.w / 2
+    local playerCenterY = self.player.y + self.player.h / 2
+    
+    -- Determine attack direction based on last movement
+    local attackDirX, attackDirY = 0, 0
+    if self.moveDir.x ~= 0 or self.moveDir.y ~= 0 then
+        attackDirX = self.moveDir.x
+        attackDirY = self.moveDir.y
+    else
+        -- Default to right if no movement
+        attackDirX = 1
+        attackDirY = 0
+    end
+    
+    -- Normalize direction
+    local length = math.sqrt(attackDirX * attackDirX + attackDirY * attackDirY)
+    if length > 0 then
+        attackDirX = attackDirX / length
+        attackDirY = attackDirY / length
+    end
+    
+    -- Check enemies in cone
+    for _, enemy in ipairs(self.enemies) do
+        local dx = enemy.x + enemy.w/2 - playerCenterX
+        local dy = enemy.y + enemy.h/2 - playerCenterY
+        local distance = math.sqrt(dx*dx + dy*dy)
+        
+        if distance <= self.player.autoAttackRange then
+            -- Check if enemy is in cone
+            local dot = dx * attackDirX + dy * attackDirY
+            local angle = math.acos(math.max(-1, math.min(1, dot / distance)))
+            
+            if angle <= self.player.autoAttackAngle / 2 then
+                -- Apply damage with crit chance
+                local damage = self.player.autoAttackDamage
+                if math.random() < self.player.critChance then
+                    damage = damage * 2
+                end
+                enemy:takeDamage(damage, love.timer.getTime())
+            end
+        end
+    end
+    
+    -- Set cooldown
+    self.player.autoAttackCooldown = 0.5  -- 0.5 second cooldown
+end
+
+function RogueScene:drawAttackCone()
+    local playerCenterX = self.player.x + self.player.w / 2
+    local playerCenterY = self.player.y + self.player.h / 2
+    
+    -- Determine attack direction
+    local attackDirX, attackDirY = 0, 0
+    if self.moveDir.x ~= 0 or self.moveDir.y ~= 0 then
+        attackDirX = self.moveDir.x
+        attackDirY = self.moveDir.y
+    else
+        attackDirX = 1
+        attackDirY = 0
+    end
+    
+    -- Normalize direction
+    local length = math.sqrt(attackDirX * attackDirX + attackDirY * attackDirY)
+    if length > 0 then
+        attackDirX = attackDirX / length
+        attackDirY = attackDirY / length
+    end
+    
+    -- Calculate cone points
+    local range = self.player.autoAttackRange
+    local halfAngle = self.player.autoAttackAngle / 2
+    
+    local leftX = attackDirX * math.cos(halfAngle) - attackDirY * math.sin(halfAngle)
+    local leftY = attackDirX * math.sin(halfAngle) + attackDirY * math.cos(halfAngle)
+    local rightX = attackDirX * math.cos(-halfAngle) - attackDirY * math.sin(-halfAngle)
+    local rightY = attackDirX * math.sin(-halfAngle) + attackDirY * math.cos(-halfAngle)
+    
+    -- Draw cone
+    love.graphics.setColor(1, 0.8, 0.2, 0.6)  -- Orange with transparency
+    love.graphics.polygon('fill', 
+        playerCenterX, playerCenterY,
+        playerCenterX + leftX * range, playerCenterY + leftY * range,
+        playerCenterX + rightX * range, playerCenterY + rightY * range
+    )
+    
+    -- Draw cone outline
+    love.graphics.setColor(1, 0.6, 0, 0.8)
+    love.graphics.polygon('line', 
+        playerCenterX, playerCenterY,
+        playerCenterX + leftX * range, playerCenterY + leftY * range,
+        playerCenterX + rightX * range, playerCenterY + rightY * range
+    )
+end
+
 function RogueScene:updatePassiveBonuses(dt)
     local currentTime = love.timer.getTime()
-
+    
     -- Health regeneration
     if self.player.healthRegen and currentTime - self.player.lastHealthRegen >= 3.0 then
         self.player.hp = math.min(self.player.maxHp, self.player.hp + self.player.healthRegen)
         self.player.lastHealthRegen = currentTime
     end
-
+    
     -- XP Rain
     if self.player.xpRain and currentTime - self.player.lastXPRain >= 1.0 then
         self.player:addXP(self.player.xpRain)
         self.player.lastXPRain = currentTime
     end
-
+    
     -- God Mode
     if self.player.godMode and currentTime - self.player.lastGodMode >= 2.0 then
         for _, enemy in ipairs(self.enemies) do
@@ -741,7 +879,7 @@ function RogueScene:updatePassiveBonuses(dt)
         end
         self.player.lastGodMode = currentTime
     end
-
+    
     -- Teleport
     if self.player.teleport and currentTime - self.player.lastTeleport >= 5.0 then
         local x, y = self:randomFloorTile()

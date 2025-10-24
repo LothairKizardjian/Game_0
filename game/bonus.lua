@@ -108,12 +108,28 @@ function BonusSelection:update(dt)
 end
 
 function BonusSelection:keypressed(key)
+    -- Keep keyboard support as backup
     if key == '1' then
         self.selectedBonus = self.bonuses[1]
     elseif key == '2' then
         self.selectedBonus = self.bonuses[2]
     elseif key == '3' then
         self.selectedBonus = self.bonuses[3]
+    end
+end
+
+function BonusSelection:mousepressed(x, y, button)
+    if button == 1 then -- Left mouse button
+        -- Check which bonus was clicked
+        for i, bonus in ipairs(self.bonuses) do
+            local bonusX = 50 + (i - 1) * 250
+            local bonusY = 150
+            
+            if x >= bonusX and x <= bonusX + 200 and y >= bonusY and y <= bonusY + 300 then
+                self.selectedBonus = bonus
+                break
+            end
+        end
     end
 end
 
@@ -128,7 +144,7 @@ function BonusSelection:render()
     -- Instructions
     love.graphics.setFont(self.font)
     love.graphics.setColor(0.8, 0.8, 0.8)
-    love.graphics.printf("Press 1, 2, or 3 to select", 0, 100, 800, 'center')
+    love.graphics.printf("Click a bonus to select, or press 1, 2, or 3", 0, 100, 800, 'center')
 
     -- Display bonuses
     for i, bonus in ipairs(self.bonuses) do

@@ -18,8 +18,9 @@ A small, modular roguelike foundation using Love2D (Lua) with simple placeholder
 
 ## Controls
 - **Movement**: WASD or Arrow Keys
+- **Auto-Attack**: SPACEBAR (cone-shaped damage in front of player)
 - **Zoom**: +/= to zoom in, - to zoom out, 0 to reset
-- **Bonus Selection**: Press 1, 2, or 3 to choose bonuses
+- **Bonus Selection**: Click bonuses or press 1, 2, or 3
 - **Game Over**: Click buttons or use ENTER/SPACE
 - **Quit**: Esc or close window
 
@@ -31,15 +32,17 @@ A small, modular roguelike foundation using Love2D (Lua) with simple placeholder
 
 ## Features
 - **🎮 Complete Roguelike Experience**: Game over screen, restart functionality, and progression
+- **⚔️ Auto-Attack System**: SPACEBAR cone-shaped attack with visual feedback and cooldown
 - **📈 Leveling System**: Player levels up with XP from enemy kills, exponential progression
 - **🎁 Bonus System**: 20+ unique bonuses across 5 rarity tiers (Common to Godly)
 - **💎 XP Shards**: Visual experience drops that move toward player with collect radius
+- **🖱️ Mouse Controls**: Click to select bonuses and game over buttons
 - **⚔️ Enhanced Combat**: Damage reduction, thorns, life steal, explosive death effects
 - **🌟 Creative Bonuses**: Health regen, XP rain, god mode, time slow, teleportation
-- **🎯 Visual Polish**: Glowing XP shards, collect radius display, bonus tracking
+- **🎯 Visual Polish**: Glowing XP shards, attack cones, collect radius, bonus tracking
 - **🏗️ Large Procedural World**: 50x35 tile map with room-based generation
 - **📷 Camera System**: Smooth following with zoom (0.5x to 4.0x) and boundaries
-- **🎨 Dynamic HUD**: Level, XP, bonuses, health, and comprehensive stat display
+- **🎨 Dynamic HUD**: Level, XP, attack cooldown, bonuses, health, and comprehensive stats
 
 ## Notes
 - Uses colored rectangles for entities/tiles. Replace with sprites later.
