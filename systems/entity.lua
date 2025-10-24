@@ -197,7 +197,7 @@ function Entity:applyBonus(bonus)
         elseif bonus.effect == "god_mode" then
             self.godMode = true
         elseif bonus.effect == "xp_rain" then
-            self.xpRain = true
+            self.xpRain = bonus:getScaledValue()
         elseif bonus.effect == "teleport" then
             self.teleport = true
         elseif bonus.effect == "auto_attack_damage" then
@@ -256,6 +256,7 @@ function Entity:recalculateBonusEffects()
     self.multiStrike = 1
     self.chainLightning = 0
     self.explosiveAttack = 0
+    self.xpRain = 0
 
     -- Reapply all bonuses
     for _, bonus in ipairs(self.bonuses) do
@@ -303,6 +304,8 @@ function Entity:recalculateBonusEffects()
             self.chainLightning = self.chainLightning + bonus:getScaledValue()
         elseif bonus.effect == "explosive_attack" then
             self.explosiveAttack = self.explosiveAttack + bonus:getScaledValue()
+        elseif bonus.effect == "xp_rain" then
+            self.xpRain = bonus:getScaledValue()
         end
     end
 end
