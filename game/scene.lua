@@ -9,6 +9,10 @@ local TILE = 32
 local GRID_W, GRID_H = 25, 18
 local SCREEN_W, SCREEN_H = GRID_W * TILE, GRID_H * TILE
 
+-- Camera settings
+local CAMERA_ZOOM = 2.0
+local CAMERA_SMOOTH = 5.0
+
 -- Colors
 local COLOR_BG = {12/255, 12/255, 16/255}
 local COLOR_WALL = {50/255, 50/255, 70/255}
@@ -116,6 +120,15 @@ function RogueScene.new()
     self.moveDir = {x = 0, y = 0}
     self.keys = {}
 
+    -- Camera system
+    self.camera = {
+        x = 0,
+        y = 0,
+        targetX = 0,
+        targetY = 0,
+        zoom = CAMERA_ZOOM
+    }
+
     return self
 end
 
@@ -129,6 +142,15 @@ end
 
 function RogueScene:keypressed(key)
     self.keys[key] = true
+
+    -- Zoom controls
+    if key == '=' or key == '+' then
+        self.camera.zoom = math.min(self.camera.zoom + 0.5, 4.0)
+    elseif key == '-' then
+        self.camera.zoom = math.max(self.camera.zoom - 0.5, 0.5)
+    elseif key == '0' then
+        self.camera.zoom = 1.0
+    end
 end
 
 function RogueScene:keyreleased(key)
@@ -187,10 +209,18 @@ function RogueScene:update(dt)
         end
     end
     self.enemies = aliveEnemies
+
+    -- Update camera to follow player
+    self:updateCamera(dt)
 end
 
 function RogueScene:render()
     love.graphics.clear(COLOR_BG[1], COLOR_BG[2], COLOR_BG[3])
+
+    -- Apply camera transformation
+    love.graphics.push()
+    love.graphics.scale(self.camera.zoom, self.camera.zoom)
+    love.graphics.translate(-self.camera.x, -self.camera.y)
 
     -- Draw tiles
     for y = 1, GRID_H do
@@ -211,10 +241,14 @@ function RogueScene:render()
         love.graphics.rectangle('fill', enemy.x, enemy.y, enemy.w, enemy.h)
     end
 
-    -- HUD
+    -- Reset transformation for HUD
+    love.graphics.pop()
+
+    -- HUD (not affected by camera)
     love.graphics.setColor(COLOR_UI[1], COLOR_UI[2], COLOR_UI[3])
     love.graphics.print("HP: " .. self.player.hp, 8, 6)
     love.graphics.print("Move: WASD/Arrows — ESC to quit", 8, 28)
+    love.graphics.print("Zoom: " .. string.format("%.1f", self.camera.zoom), 8, 50)
 end
 
 function RogueScene:moveEntity(entity, dx, dy)
@@ -238,6 +272,34 @@ function RogueScene:randomFloorTile()
             return x, y
         end
     end
+end
+
+function RogueScene:updateCamera(dt)
+    -- Target camera position (center on player)
+    local playerCenterX = self.player.x + self.player.w / 2
+    local playerCenterY = self.player.y + self.player.h / 2
+
+    -- Calculate screen center in world coordinates
+    local screenCenterX = SCREEN_W / (2 * self.camera.zoom)
+    local screenCenterY = SCREEN_H / (2 * self.camera.zoom)
+
+    -- Set target camera position
+    self.camera.targetX = playerCenterX - screenCenterX
+    self.camera.targetY = playerCenterY - screenCenterY
+
+    -- Apply camera boundaries (prevent camera from going outside map)
+    local mapWidth = GRID_W * TILE
+    local mapHeight = GRID_H * TILE
+    local maxCameraX = mapWidth - (SCREEN_W / self.camera.zoom)
+    local maxCameraY = mapHeight - (SCREEN_H / self.camera.zoom)
+
+    self.camera.targetX = math.max(0, math.min(self.camera.targetX, maxCameraX))
+    self.camera.targetY = math.max(0, math.min(self.camera.targetY, maxCameraY))
+
+    -- Smooth camera movement
+    local lerpFactor = CAMERA_SMOOTH * dt
+    self.camera.x = self.camera.x + (self.camera.targetX - self.camera.x) * lerpFactor
+    self.camera.y = self.camera.y + (self.camera.targetY - self.camera.y) * lerpFactor
 end
 
 return RogueScene

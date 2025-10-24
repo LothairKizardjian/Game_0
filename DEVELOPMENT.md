@@ -2,13 +2,15 @@
 
 Game_0 is a lightweight, modular roguelike foundation using Love2D (Lua) with simple placeholder graphics. The goal is to provide a clean architecture you can grow: input, update, render loops; entities and systems; level generation; basic AI and combat.
 
-## Objectives
-- Core engine loop with scenes (state management)
-- Minimal ECS-like separation (entities + systems)
-- Simple tile map with walls and walkable tiles
-- Player movement and collision
-- Basic enemy AI (chase player) and collision/combat
-- Simple HUD (HP display)
+## Objectives ✅
+- Core engine loop with scenes (state management) ✅
+- Minimal ECS-like separation (entities + systems) ✅
+- Simple tile map with walls and walkable tiles ✅
+- Player movement and collision ✅
+- Basic enemy AI (chase player) and collision/combat ✅
+- Simple HUD (HP display) ✅
+- **NEW**: Camera system with zoom and smooth following ✅
+- **NEW**: Camera boundaries at map edges ✅
 
 ## Roadmap
 - Add procedural dungeon generation (rooms + corridors)
@@ -27,6 +29,12 @@ Game_0 is a lightweight, modular roguelike foundation using Love2D (Lua) with si
 - `core/engine.lua` — game loop and scene management
 - `game/scene.lua` — roguelike scene: map, entities, systems
 - `assets/` — sprites/sfx (placeholder for now)
+
+## Recent Updates
+- **Camera System**: Added smooth camera following with zoom controls (0.5x to 4.0x)
+- **Camera Boundaries**: Prevents camera from showing outside map area
+- **Enhanced HUD**: Shows zoom level and improved UI
+- **Zoom Controls**: +/= to zoom in, - to zoom out, 0 to reset
 
 ## Migration Notes
 - Migrated from Python/Pygame to Love2D for better performance
