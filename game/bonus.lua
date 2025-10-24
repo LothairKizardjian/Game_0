@@ -45,14 +45,38 @@ end
 function Power:getEnhancedDescription()
     local currentDamage = self:getCurrentDamage()
     local newDamage = self:getNewDamage()
-
+    
+    if self.id == "orbiting_blades" then
+        if currentDamage > 0 then
+            -- Player already has this power - show upgrade
+            local damageIncrease = newDamage - currentDamage
+            return "3 blades orbit around you, dealing " .. currentDamage .. " ( + " .. damageIncrease .. " ) damage."
+        else
+            -- New power - show initial damage
+            return "3 blades orbit around you, dealing " .. newDamage .. " damage."
+        end
+    elseif self.id == "meteor" then
+        local currentRadius = currentDamage > 0 and (40 + (self.level - 2) * 10) or 40
+        local newRadius = 40 + (self.level - 1) * 10
+        local currentMeteors = currentDamage > 0 and math.min(5, math.floor((self.level - 1) / 2) + 1) or 1
+        local newMeteors = math.min(5, math.floor(self.level / 2) + 1)
+        
+        if currentDamage > 0 then
+            -- Player already has this power - show upgrade
+            local damageIncrease = newDamage - currentDamage
+            return "Meteors fall from the sky dealing damage on impact. Radius: " .. newRadius .. "px, Meteors: " .. newMeteors .. "\n\nCurrent: " .. currentDamage .. " damage\nUpgrade to: " .. newDamage .. " damage"
+        else
+            -- New power - show initial damage
+            return "Meteors fall from the sky dealing damage on impact. Radius: " .. newRadius .. "px, Meteors: " .. newMeteors .. "\n\nDamage: " .. newDamage
+        end
+    end
+    
+    -- Fallback for other powers
     if currentDamage > 0 then
-        -- Player already has this power - show upgrade
         local damageIncrease = newDamage - currentDamage
-        return "3 blades orbit around you, dealing " .. currentDamage .. " ( + " .. damageIncrease .. " ) damage."
+        return self.description .. "\n\nCurrent: " .. currentDamage .. " damage\nUpgrade to: " .. newDamage .. " damage"
     else
-        -- New power - show initial damage
-        return "3 blades orbit around you, dealing " .. newDamage .. " damage."
+        return self.description .. "\n\nDamage: " .. newDamage
     end
 end
 
@@ -88,7 +112,7 @@ local RARITY_COLORS = {
 -- Power definitions
 local POWER_DEFINITIONS = {
     {id = "orbiting_blades", name = "Orbiting Blades", description = "3 blades orbit around you, dealing damage on contact", rarity = "rare", baseDamage = 2, baseRadius = 60},
-    {id = "meteor", name = "Meteor", description = "Meteors fall from the sky dealing damage on impact", rarity = "epic", baseDamage = 3, baseRadius = 40}
+    {id = "meteor", name = "Meteor", description = "Meteors fall from the sky dealing damage on impact. Radius: 40px, Meteors: 1", rarity = "epic", baseDamage = 3, baseRadius = 40}
 }
 
 -- Orbiting Blades Power Implementation
@@ -171,7 +195,7 @@ function Meteor.new(level)
     self.meteors = {}
     self.spawnTimer = 0
     self.spawnInterval = 2.0  -- Spawn every 2 seconds
-    self.maxMeteors = math.min(3, math.floor(self.level / 2) + 1)  -- More meteors at higher levels
+    self.maxMeteors = math.min(5, math.floor(self.level / 2) + 1)  -- One meteor every 2 levels, max 5
 
     return self
 end
