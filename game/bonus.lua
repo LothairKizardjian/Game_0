@@ -48,10 +48,31 @@ function Power:getEnhancedDescription()
     
     if currentDamage > 0 then
         -- Player already has this power - show upgrade
-        return self.description .. "\n\nCurrent: " .. currentDamage .. " damage\nUpgrade to: " .. newDamage .. " damage"
+        local damageIncrease = newDamage - currentDamage
+        return "3 blades orbit around you, dealing " .. currentDamage .. " ( + " .. damageIncrease .. " ) damage."
     else
         -- New power - show initial damage
-        return self.description .. "\n\nDamage: " .. newDamage
+        return "3 blades orbit around you, dealing " .. newDamage .. " damage."
+    end
+end
+
+function Power:getDamageInfo()
+    local currentDamage = self:getCurrentDamage()
+    local newDamage = self:getNewDamage()
+    
+    if currentDamage > 0 then
+        local damageIncrease = newDamage - currentDamage
+        return {
+            current = currentDamage,
+            increase = damageIncrease,
+            hasUpgrade = true
+        }
+    else
+        return {
+            current = newDamage,
+            increase = 0,
+            hasUpgrade = false
+        }
     end
 end
 
@@ -243,9 +264,28 @@ function PowerSelection:render()
         love.graphics.setColor(color[1], color[2], color[3])
         love.graphics.printf(power.rarity:upper(), x, y + 50, 200, 'center')
 
-        -- Description with damage info
+        -- Description with colored damage info
+        local damageInfo = power:getDamageInfo()
+        local baseDescription = "3 blades orbit around you, dealing "
+        local damageText = ""
+        
+        if damageInfo.hasUpgrade then
+            damageText = damageInfo.current .. " ( + " .. damageInfo.increase .. " ) damage."
+        else
+            damageText = damageInfo.current .. " damage."
+        end
+        
+        -- Render base description
         love.graphics.setColor(0.8, 0.8, 0.8)
-        love.graphics.printf(power:getEnhancedDescription(), x + 10, y + 80, 180, 'center')
+        love.graphics.printf(baseDescription, x + 10, y + 80, 180, 'center')
+        
+        -- Calculate position for damage text
+        local baseWidth = love.graphics.getFont():getWidth(baseDescription)
+        local damageX = x + 10 + (180 - baseWidth) / 2 + baseWidth
+        
+        -- Render damage text in blue
+        love.graphics.setColor(0.2, 0.6, 1.0)  -- Blue color
+        love.graphics.print(damageText, damageX, y + 80)
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)
