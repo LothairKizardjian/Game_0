@@ -29,3 +29,11 @@ end
 function love.keyreleased(key)
     Engine.keyreleased(key)
 end
+
+function love.mousepressed(x, y, button)
+    Engine.mousepressed(x, y, button)
+end
+
+function love.mousereleased(x, y, button)
+    Engine.mousereleased(x, y, button)
+end

@@ -4,6 +4,11 @@
 local RogueScene = {}
 RogueScene.__index = RogueScene
 
+-- Import systems
+local BonusSystem = require('game.bonus')
+local XPShardSystem = require('game.xp_shard')
+local GameOverScene = require('game.gameover')
+
 -- Constants
 local TILE = 32
 local GRID_W, GRID_H = 50, 35  -- Much larger map
@@ -38,6 +43,39 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
     self.isPlayer = isPlayer or false
     self.damageCooldown = 0
     self.lastDamageTime = 0
+    
+    -- Player-specific stats
+    if isPlayer then
+        self.level = 1
+        self.xp = 0
+        self.xpToNext = 10
+        self.collectRadius = 40
+        self.baseSpeed = speed
+        self.baseMaxHp = hp
+        self.damageReduction = 0
+        self.xpMultiplier = 1.0
+        self.speedMultiplier = 1.0
+        self.collectRadiusMultiplier = 1.0
+        self.bonuses = {}
+        self.enemiesKilled = 0
+        self.lastHealthRegen = 0
+        self.lastXPRain = 0
+        self.lastGodMode = 0
+        self.lastTeleport = 0
+        self.damageImmunityTime = 0
+        self.speedBurstTime = 0
+        self.critChance = 0
+        self.thorns = 0
+        self.lifeSteal = 0
+        self.explosiveDeath = 0
+        self.timeSlow = 1.0
+        self.xpMagnet = 1.0
+        self.immortality = false
+        self.godMode = false
+        self.xpRain = false
+        self.teleport = false
+    end
+    
     return self
 end
 
@@ -65,6 +103,76 @@ end
 
 function Entity:getHealthPercent()
     return self.hp / self.maxHp
+end
+
+function Entity:addXP(amount)
+    if not self.isPlayer then return end
+    
+    self.xp = self.xp + amount
+    while self.xp >= self.xpToNext do
+        self:levelUp()
+    end
+end
+
+function Entity:levelUp()
+    if not self.isPlayer then return end
+    
+    self.xp = self.xp - self.xpToNext
+    self.level = self.level + 1
+    self.xpToNext = math.floor(self.xpToNext * 1.5)  -- Exponential XP requirement
+    
+    -- Heal player on level up
+    self.hp = self.maxHp
+    
+    -- Signal for bonus selection
+    return true
+end
+
+function Entity:applyBonus(bonus)
+    if not self.isPlayer then return end
+    
+    table.insert(self.bonuses, bonus)
+    
+    if bonus.effect == "max_health" then
+        self.maxHp = self.maxHp + bonus.value
+        self.hp = self.hp + bonus.value
+    elseif bonus.effect == "speed_mult" then
+        self.speedMultiplier = self.speedMultiplier + bonus.value
+    elseif bonus.effect == "damage_reduction" then
+        self.damageReduction = self.damageReduction + bonus.value
+    elseif bonus.effect == "xp_mult" then
+        self.xpMultiplier = self.xpMultiplier + bonus.value
+    elseif bonus.effect == "health_regen" then
+        self.healthRegen = bonus.value
+    elseif bonus.effect == "collect_radius_mult" then
+        self.collectRadiusMultiplier = self.collectRadiusMultiplier + bonus.value
+    elseif bonus.effect == "crit_chance" then
+        self.critChance = self.critChance + bonus.value
+    elseif bonus.effect == "enemy_slow" then
+        self.enemySlow = bonus.value
+    elseif bonus.effect == "damage_immunity" then
+        self.damageImmunity = bonus.value
+    elseif bonus.effect == "thorns" then
+        self.thorns = self.thorns + bonus.value
+    elseif bonus.effect == "speed_burst" then
+        self.speedBurst = bonus.value
+    elseif bonus.effect == "life_steal" then
+        self.lifeSteal = self.lifeSteal + bonus.value
+    elseif bonus.effect == "explosive_death" then
+        self.explosiveDeath = self.explosiveDeath + bonus.value
+    elseif bonus.effect == "time_slow" then
+        self.timeSlow = self.timeSlow - bonus.value
+    elseif bonus.effect == "xp_magnet" then
+        self.xpMagnet = self.xpMagnet + bonus.value
+    elseif bonus.effect == "immortality" then
+        self.immortality = true
+    elseif bonus.effect == "god_mode" then
+        self.godMode = true
+    elseif bonus.effect == "xp_rain" then
+        self.xpRain = true
+    elseif bonus.effect == "teleport" then
+        self.teleport = true
+    end
 end
 
 -- Map generation with improved algorithm
@@ -209,7 +317,7 @@ function RogueScene.new()
 
     self.moveDir = {x = 0, y = 0}
     self.keys = {}
-
+    
     -- Camera system
     self.camera = {
         x = 0,
@@ -218,6 +326,15 @@ function RogueScene.new()
         targetY = 0,
         zoom = CAMERA_ZOOM
     }
+    
+    -- XP and bonus systems
+    self.xpShardManager = XPShardSystem.XPShardManager.new()
+    self.bonusSelection = nil
+    self.showingBonusSelection = false
+    self.gameOver = false
+    
+    -- Initialize bonus selection at start
+    self:showBonusSelection()
 
     return self
 end
@@ -226,13 +343,38 @@ function RogueScene:onEnter()
     -- Initialize any scene-specific resources
 end
 
+function RogueScene:showBonusSelection()
+    self.bonusSelection = BonusSystem.BonusSelection.new()
+    self.bonusSelection:generateBonuses(3)
+    self.bonusSelection:onEnter()
+    self.showingBonusSelection = true
+end
+
+function RogueScene:selectBonus(bonus)
+    self.player:applyBonus(bonus)
+    self.showingBonusSelection = false
+    self.bonusSelection = nil
+end
+
 function RogueScene:onExit()
     -- Cleanup any scene-specific resources
 end
 
 function RogueScene:keypressed(key)
     self.keys[key] = true
-
+    
+    -- Handle bonus selection
+    if self.showingBonusSelection then
+        if key == '1' then
+            self:selectBonus(self.bonusSelection.bonuses[1])
+        elseif key == '2' then
+            self:selectBonus(self.bonusSelection.bonuses[2])
+        elseif key == '3' then
+            self:selectBonus(self.bonusSelection.bonuses[3])
+        end
+        return
+    end
+    
     -- Zoom controls
     if key == '=' or key == '+' then
         self.camera.zoom = math.min(self.camera.zoom + 0.5, 4.0)
@@ -248,15 +390,32 @@ function RogueScene:keyreleased(key)
 end
 
 function RogueScene:update(dt)
+    -- Handle bonus selection screen
+    if self.showingBonusSelection then
+        self.bonusSelection:update(dt)
+        return
+    end
+    
+    -- Check for game over
+    if self.player.hp <= 0 then
+        self.gameOver = true
+        return
+    end
+    
+    -- Apply time slow effect
+    if self.player.timeSlow and self.player.timeSlow < 1.0 then
+        dt = dt * self.player.timeSlow
+    end
+    
     -- Update movement direction
     local x = 0
     local y = 0
-
+    
     if self.keys['d'] or self.keys['right'] then x = x + 1 end
     if self.keys['a'] or self.keys['left'] then x = x - 1 end
     if self.keys['s'] or self.keys['down'] then y = y + 1 end
     if self.keys['w'] or self.keys['up'] then y = y - 1 end
-
+    
     if x ~= 0 or y ~= 0 then
         local length = math.sqrt(x*x + y*y)
         self.moveDir.x = x / length
@@ -265,13 +424,25 @@ function RogueScene:update(dt)
         self.moveDir.x = 0
         self.moveDir.y = 0
     end
-
+    
+    -- Calculate player speed with bonuses
+    local playerSpeed = self.player.baseSpeed * self.player.speedMultiplier
+    if self.player.speedBurstTime > 0 then
+        playerSpeed = playerSpeed * (1 + self.player.speedBurst)
+        self.player.speedBurstTime = self.player.speedBurstTime - dt
+    end
+    
     -- Player movement with collision
     if self.moveDir.x ~= 0 or self.moveDir.y ~= 0 then
-        self:moveEntity(self.player, self.moveDir.x * self.player.speed * dt, self.moveDir.y * self.player.speed * dt)
+        self:moveEntity(self.player, self.moveDir.x * playerSpeed * dt, self.moveDir.y * playerSpeed * dt)
     end
 
-    -- Enemy AI - chase player
+    -- Enemy AI - chase player (with slow effect)
+    local enemySpeedMultiplier = 1.0
+    if self.player.enemySlow then
+        enemySpeedMultiplier = 1.0 - self.player.enemySlow
+    end
+    
     for _, enemy in ipairs(self.enemies) do
         local dx = self.player.x - enemy.x
         local dy = self.player.y - enemy.y
@@ -280,27 +451,90 @@ function RogueScene:update(dt)
         if length > 0 then
             local dirX = dx / length
             local dirY = dy / length
-            self:moveEntity(enemy, dirX * enemy.speed * dt, dirY * enemy.speed * dt)
+            self:moveEntity(enemy, dirX * enemy.speed * enemySpeedMultiplier * dt, dirY * enemy.speed * enemySpeedMultiplier * dt)
         end
     end
 
     -- Combat - enemies damage player on collision
     for _, enemy in ipairs(self.enemies) do
         if self.player:collidesWith(enemy) then
-            if self.player:takeDamage(1, love.timer.getTime()) then
-                -- Player took damage, could add visual feedback here
+            -- Check for damage immunity
+            if self.player.damageImmunityTime <= 0 then
+                local damage = math.max(1, 1 - self.player.damageReduction)
+                if self.player:takeDamage(damage, love.timer.getTime()) then
+                    -- Player took damage, set immunity time
+                    if self.player.damageImmunity then
+                        self.player.damageImmunityTime = self.player.damageImmunity
+                    end
+                end
+            end
+            
+            -- Thorns damage
+            if self.player.thorns > 0 then
+                enemy:takeDamage(self.player.thorns, love.timer.getTime())
             end
         end
     end
+    
+    -- Update damage immunity timer
+    if self.player.damageImmunityTime > 0 then
+        self.player.damageImmunityTime = self.player.damageImmunityTime - dt
+    end
 
-    -- Remove dead enemies
+    -- Remove dead enemies and handle XP drops
     local aliveEnemies = {}
     for _, enemy in ipairs(self.enemies) do
         if enemy.hp > 0 then
             table.insert(aliveEnemies, enemy)
+        else
+            -- Enemy died, drop XP shard
+            local xpValue = math.floor(1 * self.player.xpMultiplier)
+            self.xpShardManager:addShard(enemy.x + enemy.w/2, enemy.y + enemy.h/2, xpValue)
+            self.player.enemiesKilled = self.player.enemiesKilled + 1
+            
+            -- Life steal
+            if self.player.lifeSteal > 0 then
+                self.player.hp = math.min(self.player.maxHp, self.player.hp + self.player.lifeSteal)
+            end
+            
+            -- Speed burst
+            if self.player.speedBurst then
+                self.player.speedBurstTime = 1.0
+            end
+            
+            -- Explosive death
+            if self.player.explosiveDeath > 0 then
+                for _, otherEnemy in ipairs(aliveEnemies) do
+                    local dx = otherEnemy.x - enemy.x
+                    local dy = otherEnemy.y - enemy.y
+                    local distance = math.sqrt(dx*dx + dy*dy)
+                    if distance <= 50 then
+                        otherEnemy:takeDamage(self.player.explosiveDeath, love.timer.getTime())
+                    end
+                end
+            end
         end
     end
     self.enemies = aliveEnemies
+
+    -- Update XP shards
+    local collectedXP = self.xpShardManager:update(dt, 
+        self.player.x + self.player.w/2, 
+        self.player.y + self.player.h/2,
+        self.player.collectRadius * self.player.collectRadiusMultiplier,
+        200 * self.player.xpMagnet
+    )
+    
+    if collectedXP > 0 then
+        self.player:addXP(collectedXP)
+        -- Check for level up
+        if self.player.xp >= self.player.xpToNext then
+            self:showBonusSelection()
+        end
+    end
+    
+    -- Handle passive bonuses
+    self:updatePassiveBonuses(dt)
 
     -- Update camera to follow player
     self:updateCamera(dt)
@@ -308,6 +542,20 @@ end
 
 function RogueScene:render()
     love.graphics.clear(COLOR_BG[1], COLOR_BG[2], COLOR_BG[3])
+
+    -- Handle bonus selection screen
+    if self.showingBonusSelection then
+        self.bonusSelection:render()
+        return
+    end
+    
+    -- Handle game over screen
+    if self.gameOver then
+        local gameOverScene = GameOverScene.new(self.player.level, self.player.xp, self.player.enemiesKilled)
+        gameOverScene:onEnter()
+        gameOverScene:render()
+        return
+    end
 
     -- Apply camera transformation
     love.graphics.push()
@@ -324,6 +572,9 @@ function RogueScene:render()
         end
     end
 
+    -- Draw XP shards
+    self.xpShardManager:render()
+    
     -- Draw entities
     love.graphics.setColor(self.player.color[1], self.player.color[2], self.player.color[3])
     love.graphics.rectangle('fill', self.player.x, self.player.y, self.player.w, self.player.h)
@@ -345,6 +596,13 @@ function RogueScene:render()
             self:drawHealthBar(enemy, enemy.x, enemy.y - 6, enemy.w, 3)
         end
     end
+    
+    -- Draw collect radius (debug)
+    if self.player.collectRadiusMultiplier > 1.0 then
+        love.graphics.setColor(0.2, 0.8, 1.0, 0.2)
+        love.graphics.circle('fill', self.player.x + self.player.w/2, self.player.y + self.player.h/2, 
+            self.player.collectRadius * self.player.collectRadiusMultiplier)
+    end
 
     -- Reset transformation for HUD
     love.graphics.pop()
@@ -352,25 +610,47 @@ function RogueScene:render()
     -- HUD (not affected by camera)
     love.graphics.setColor(COLOR_UI[1], COLOR_UI[2], COLOR_UI[3])
     love.graphics.print("HP: " .. self.player.hp .. "/" .. self.player.maxHp, 8, 6)
-    love.graphics.print("Move: WASD/Arrows — ESC to quit", 8, 28)
-    love.graphics.print("Zoom: " .. string.format("%.1f", self.camera.zoom), 8, 50)
-    love.graphics.print("Map: " .. GRID_W .. "x" .. GRID_H .. " tiles", 8, 72)
-    love.graphics.print("Enemies: " .. #self.enemies, 8, 94)
+    love.graphics.print("Level: " .. self.player.level, 8, 28)
+    love.graphics.print("XP: " .. self.player.xp .. "/" .. self.player.xpToNext, 8, 50)
+    love.graphics.print("Enemies: " .. #self.enemies .. " | Killed: " .. self.player.enemiesKilled, 8, 72)
+    love.graphics.print("Zoom: " .. string.format("%.1f", self.camera.zoom), 8, 94)
     
     -- Player health bar in HUD
     local hudBarWidth = 120
     local hudBarHeight = 8
     self:drawHealthBar(self.player, 8, 116, hudBarWidth, hudBarHeight)
+    
+    -- XP bar
+    local xpPercent = self.player.xp / self.player.xpToNext
+    local xpBarWidth = 120
+    local xpBarHeight = 6
+    love.graphics.setColor(0.2, 0.2, 0.3)
+    love.graphics.rectangle('fill', 8, 130, xpBarWidth, xpBarHeight)
+    love.graphics.setColor(0.2, 0.8, 1.0)
+    love.graphics.rectangle('fill', 8, 130, xpBarWidth * xpPercent, xpBarHeight)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.rectangle('line', 8, 130, xpBarWidth, xpBarHeight)
+    
+    -- Active bonuses display
+    if #self.player.bonuses > 0 then
+        love.graphics.print("Bonuses:", 8, 150)
+        for i, bonus in ipairs(self.player.bonuses) do
+            if i <= 5 then  -- Show only first 5 bonuses
+                love.graphics.setColor(bonus.color[1], bonus.color[2], bonus.color[3])
+                love.graphics.print("• " .. bonus.name, 8, 170 + (i-1) * 15)
+            end
+        end
+    end
 end
 
 function RogueScene:drawHealthBar(entity, x, y, width, height)
     local healthPercent = entity:getHealthPercent()
     local barWidth = width * healthPercent
-    
+
     -- Background (red)
     love.graphics.setColor(0.8, 0.2, 0.2, 0.8)
     love.graphics.rectangle('fill', x, y, width, height)
-    
+
     -- Health bar (green)
     if healthPercent > 0.6 then
         love.graphics.setColor(0.2, 0.8, 0.2, 0.8)
@@ -380,7 +660,7 @@ function RogueScene:drawHealthBar(entity, x, y, width, height)
         love.graphics.setColor(0.8, 0.2, 0.2, 0.8)
     end
     love.graphics.rectangle('fill', x, y, barWidth, height)
-    
+
     -- Border
     love.graphics.setColor(1, 1, 1, 0.8)
     love.graphics.rectangle('line', x, y, width, height)
@@ -437,6 +717,38 @@ function RogueScene:updateCamera(dt)
     local lerpFactor = CAMERA_SMOOTH * dt
     self.camera.x = self.camera.x + (self.camera.targetX - self.camera.x) * lerpFactor
     self.camera.y = self.camera.y + (self.camera.targetY - self.camera.y) * lerpFactor
+end
+
+function RogueScene:updatePassiveBonuses(dt)
+    local currentTime = love.timer.getTime()
+    
+    -- Health regeneration
+    if self.player.healthRegen and currentTime - self.player.lastHealthRegen >= 3.0 then
+        self.player.hp = math.min(self.player.maxHp, self.player.hp + self.player.healthRegen)
+        self.player.lastHealthRegen = currentTime
+    end
+    
+    -- XP Rain
+    if self.player.xpRain and currentTime - self.player.lastXPRain >= 1.0 then
+        self.player:addXP(self.player.xpRain)
+        self.player.lastXPRain = currentTime
+    end
+    
+    -- God Mode
+    if self.player.godMode and currentTime - self.player.lastGodMode >= 2.0 then
+        for _, enemy in ipairs(self.enemies) do
+            enemy:takeDamage(self.player.godMode, currentTime)
+        end
+        self.player.lastGodMode = currentTime
+    end
+    
+    -- Teleport
+    if self.player.teleport and currentTime - self.player.lastTeleport >= 5.0 then
+        local x, y = self:randomFloorTile()
+        self.player.x = x * TILE + 4
+        self.player.y = y * TILE + 4
+        self.player.lastTeleport = currentTime
+    end
 end
 
 return RogueScene

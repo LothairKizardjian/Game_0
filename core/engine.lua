@@ -56,4 +56,16 @@ function Engine.keyreleased(key)
     end
 end
 
+function Engine.mousepressed(x, y, button)
+    if currentScene and currentScene.mousepressed then
+        currentScene:mousepressed(x, y, button)
+    end
+end
+
+function Engine.mousereleased(x, y, button)
+    if currentScene and currentScene.mousereleased then
+        currentScene:mousereleased(x, y, button)
+    end
+end
+
 return Engine
