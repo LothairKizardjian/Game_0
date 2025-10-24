@@ -275,7 +275,7 @@ function PowerSelection:render()
         love.graphics.setColor(0.8, 0.8, 0.8)
         love.graphics.printf(baseDescription, x + 10, y + 80, 180, 'center')
 
-        -- Simple approach: render complete text, then overwrite part of it
+        -- Simple approach: just render the complete text in one color for now
         local fullText = ""
         
         if damageInfo.hasUpgrade then
@@ -289,10 +289,6 @@ function PowerSelection:render()
         -- Render the complete text in blue, centered
         love.graphics.setColor(0.0, 0.8, 1.0)  -- Blue color
         love.graphics.printf(fullText, x + 10, y + 100, 180, 'center')
-        
-        -- Now render just "damage." in white, centered (this will overwrite the blue "damage." part)
-        love.graphics.setColor(1.0, 1.0, 1.0)  -- White color
-        love.graphics.printf("damage.", x + 10, y + 100, 180, 'center')
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)
