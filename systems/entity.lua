@@ -55,7 +55,6 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.autoAttackAngle = math.pi / 3
         self.facingDirection = {x = 1, y = 0}
         self.baseAutoAttackCooldown = 0.5
-        self.piercingAttack = false
         self.multiStrike = 1
         self.chainLightning = 0
         self.explosiveAttack = 0
@@ -208,8 +207,6 @@ function Entity:applyBonus(bonus)
             self.baseAutoAttackCooldown = math.max(0.1, self.baseAutoAttackCooldown - bonus:getScaledValue())
         elseif bonus.effect == "auto_attack_angle" then
             self.autoAttackAngle = self.autoAttackAngle * (1 + bonus:getScaledValue())
-        elseif bonus.effect == "piercing_attack" then
-            self.piercingAttack = true
         elseif bonus.effect == "multi_strike" then
             self.multiStrike = self.multiStrike + bonus:getScaledValue()
         elseif bonus.effect == "chain_lightning" then
