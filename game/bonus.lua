@@ -267,32 +267,46 @@ function PowerSelection:render()
         -- Description with colored damage info on multiple lines
         local damageInfo = power:getDamageInfo()
         local baseDescription = "3 blades orbit around you, dealing"
-        local damageText = ""
         
         -- Debug output
         print("Power damage info: current=" .. damageInfo.current .. ", increase=" .. damageInfo.increase .. ", hasUpgrade=" .. tostring(damageInfo.hasUpgrade))
-        
-        if damageInfo.hasUpgrade then
-            damageText = damageInfo.current .. " ( + " .. damageInfo.increase .. " ) damage."
-        else
-            damageText = damageInfo.current .. " damage."
-        end
-        
-        print("Damage text: " .. damageText)
         
         -- Render base description in gray on first line
         love.graphics.setColor(0.8, 0.8, 0.8)
         love.graphics.printf(baseDescription, x + 10, y + 80, 180, 'center')
         
-        -- Render damage text in bright blue on second line
-        love.graphics.setColor(0.0, 0.8, 1.0)  -- Bright blue color
-        love.graphics.printf(damageText, x + 10, y + 100, 180, 'center')
+        -- Render damage numbers and text separately
+        local damageNumbers = ""
+        local damageWord = " damage."
         
-        -- Debug: Draw a rectangle around the damage text area
-        love.graphics.setColor(1.0, 0.0, 0.0)  -- Red debug rectangle
-        local damageWidth = love.graphics.getFont():getWidth(damageText)
-        local damageX = x + 10 + (180 - damageWidth) / 2
-        love.graphics.rectangle('line', damageX, y + 95, damageWidth, 20)
+        if damageInfo.hasUpgrade then
+            damageNumbers = damageInfo.current .. " ( + " .. damageInfo.increase .. " )"
+        else
+            damageNumbers = damageInfo.current
+        end
+        
+        print("Damage numbers: " .. damageNumbers)
+        
+        -- Calculate positions for centered text
+        local font = love.graphics.getFont()
+        local numbersWidth = font:getWidth(damageNumbers)
+        local wordWidth = font:getWidth(damageWord)
+        local totalWidth = numbersWidth + wordWidth
+        local startX = x + 10 + (180 - totalWidth) / 2
+        
+        -- Render damage numbers in blue
+        love.graphics.setColor(0.0, 0.8, 1.0)  -- Bright blue color
+        love.graphics.print(damageNumbers, startX, y + 100)
+        
+        -- Render "damage." in white
+        love.graphics.setColor(1.0, 1.0, 1.0)  -- White color
+        love.graphics.print(damageWord, startX + numbersWidth, y + 100)
+        
+        -- Debug: Draw rectangles around the text areas
+        love.graphics.setColor(1.0, 0.0, 0.0)  -- Red debug rectangle for numbers
+        love.graphics.rectangle('line', startX, y + 95, numbersWidth, 20)
+        love.graphics.setColor(0.0, 1.0, 0.0)  -- Green debug rectangle for word
+        love.graphics.rectangle('line', startX + numbersWidth, y + 95, wordWidth, 20)
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)
