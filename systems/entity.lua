@@ -202,6 +202,7 @@ function Entity:applyPower(power)
             -- Upgrade existing meteor
             self.meteor.level = self.meteor.level + 1
             self.meteor.damage = 3 * self.meteor.level
+            self.meteor.radius = 40 + (self.meteor.level - 1) * 10  -- Update radius
             self.meteor.maxMeteors = math.min(3, math.floor(self.meteor.level / 2) + 1)
         else
             -- Create new meteor
@@ -218,7 +219,7 @@ function Entity:updatePowers(dt, enemies)
     if self.orbitingBlades then
         self.orbitingBlades:update(dt, self.x, self.y, self.w, self.h, enemies)
     end
-    
+
     -- Update meteor
     if self.meteor then
         self.meteor:update(dt, self.x, self.y, self.w, self.h, enemies)
@@ -232,7 +233,7 @@ function Entity:renderPowers()
     if self.orbitingBlades then
         self.orbitingBlades:render()
     end
-    
+
     -- Render meteor
     if self.meteor then
         self.meteor:render()

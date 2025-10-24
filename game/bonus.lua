@@ -167,7 +167,7 @@ function Meteor.new(level)
     
     self.level = level or 1
     self.damage = 3 * self.level
-    self.radius = 40
+    self.radius = 40 + (self.level - 1) * 10  -- Radius increases with level
     self.meteors = {}
     self.spawnTimer = 0
     self.spawnInterval = 2.0  -- Spawn every 2 seconds
@@ -178,18 +178,18 @@ end
 
 function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
     self.spawnTimer = self.spawnTimer + dt
-    
+
     -- Spawn new meteors
     if self.spawnTimer >= self.spawnInterval and #self.meteors < self.maxMeteors then
         self:spawnMeteor(playerX, playerY)
         self.spawnTimer = 0
     end
-    
+
     -- Update existing meteors
     for i = #self.meteors, 1, -1 do
         local meteor = self.meteors[i]
         meteor.y = meteor.y + meteor.speed * dt
-        
+
         -- Check if meteor hit ground or enemy
         if meteor.y >= meteor.targetY then
             -- Check for enemy hits
@@ -197,12 +197,12 @@ function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
                 local dx = meteor.x - (enemy.x + enemy.w/2)
                 local dy = meteor.y - (enemy.y + enemy.h/2)
                 local distance = math.sqrt(dx*dx + dy*dy)
-                
+
                 if distance <= self.radius then
                     enemy:takeDamage(self.damage, love.timer.getTime())
                 end
             end
-            
+
             -- Remove meteor
             table.remove(self.meteors, i)
         end
@@ -217,7 +217,7 @@ function Meteor:spawnMeteor(playerX, playerY)
         speed = 200 + math.random(0, 100),  -- Random fall speed
         size = 8 + math.random(0, 4)  -- Random size
     }
-    
+
     table.insert(self.meteors, meteor)
 end
 
@@ -226,11 +226,11 @@ function Meteor:render()
         -- Draw meteor
         love.graphics.setColor(1.0, 0.3, 0.1)  -- Orange-red color
         love.graphics.circle('fill', meteor.x, meteor.y, meteor.size)
-        
+
         -- Draw meteor trail
         love.graphics.setColor(1.0, 0.6, 0.2)
         love.graphics.circle('fill', meteor.x, meteor.y - 10, meteor.size * 0.7)
-        
+
         -- Draw impact area when close to ground
         if meteor.y >= meteor.targetY - 20 then
             love.graphics.setColor(1.0, 0.8, 0.0, 0.3)  -- Yellow impact area
