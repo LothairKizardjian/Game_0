@@ -264,9 +264,9 @@ function PowerSelection:render()
         love.graphics.setColor(color[1], color[2], color[3])
         love.graphics.printf(power.rarity:upper(), x, y + 50, 200, 'center')
 
-        -- Description with colored damage info
+        -- Description with colored damage info on multiple lines
         local damageInfo = power:getDamageInfo()
-        local baseDescription = "3 blades orbit around you, dealing "
+        local baseDescription = "3 blades orbit around you, dealing"
         local damageText = ""
         
         -- Debug output
@@ -280,24 +280,19 @@ function PowerSelection:render()
         
         print("Damage text: " .. damageText)
         
-        -- Render the complete description with mixed colors
-        local fullText = baseDescription .. damageText
-        
-        -- Render base description in gray
+        -- Render base description in gray on first line
         love.graphics.setColor(0.8, 0.8, 0.8)
-        love.graphics.print(baseDescription, x + 10, y + 80)
+        love.graphics.printf(baseDescription, x + 10, y + 80, 180, 'center')
         
-        -- Calculate position for damage text (right after base description)
-        local baseWidth = love.graphics.getFont():getWidth(baseDescription)
-        local damageX = x + 10 + baseWidth
-        
-        -- Render damage text in bright blue for visibility
+        -- Render damage text in bright blue on second line
         love.graphics.setColor(0.0, 0.8, 1.0)  -- Bright blue color
-        love.graphics.print(damageText, damageX, y + 80)
+        love.graphics.printf(damageText, x + 10, y + 100, 180, 'center')
         
         -- Debug: Draw a rectangle around the damage text area
         love.graphics.setColor(1.0, 0.0, 0.0)  -- Red debug rectangle
-        love.graphics.rectangle('line', damageX, y + 75, love.graphics.getFont():getWidth(damageText), 20)
+        local damageWidth = love.graphics.getFont():getWidth(damageText)
+        local damageX = x + 10 + (180 - damageWidth) / 2
+        love.graphics.rectangle('line', damageX, y + 95, damageWidth, 20)
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)
