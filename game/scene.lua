@@ -38,7 +38,7 @@ function RogueScene.new()
     self.combatSystem = CombatSystem.new()
     self.enemySpawner = EnemySpawner.new()
     self.spriteSystem = SpriteSystem.new()
-    
+
     -- Load player sprite
     self:loadPlayerSprite()
 
@@ -67,12 +67,19 @@ function RogueScene.new()
 end
 
 function RogueScene:loadPlayerSprite()
-    -- Load the knight rotation sprite
+    -- Try to load the knight rotation sprite
+    -- Note: Love2D doesn't support GIF files directly
+    -- We'll use a fallback approach
     local knightSprite = self.spriteSystem:loadSprite("knight", "assets/Knight_rotations_8dir.gif")
     if knightSprite then
         -- Create animated sprite with 8 frames (8 directions)
         -- Assuming each frame is 32x32 pixels
         self.spriteSystem:createAnimatedSprite("player", knightSprite, 32, 32, 8, 0.2)
+        print("Knight sprite loaded successfully")
+    else
+        print("Failed to load knight sprite - using fallback")
+        -- Create a simple colored rectangle as fallback
+        self.spriteSystem:createFallbackSprite("player")
     end
 end
 
@@ -234,7 +241,7 @@ function RogueScene:update(dt)
         -- Update facing direction when moving
         self.player.facingDirection.x = self.moveDir.x
         self.player.facingDirection.y = self.moveDir.y
-        
+
         -- Update sprite direction
         self.spriteSystem:setDirection("player", self.player.facingDirection)
     else
@@ -345,7 +352,7 @@ function RogueScene:update(dt)
 
     -- Update player powers
     self.player:updatePowers(dt, self.enemies)
-    
+
     -- Update sprite system
     self.spriteSystem:update(dt)
 
@@ -509,8 +516,18 @@ function RogueScene:render()
     self.xpShardManager:render()
 
     -- Draw entities
-    -- Draw player sprite
-    self.spriteSystem:render("player", self.player.x + self.player.w/2, self.player.y + self.player.h/2)
+    -- Draw player sprite or fallback
+    local spriteRendered = false
+    if self.spriteSystem.sprites["player"] and self.spriteSystem.sprites["player"].sprite then
+        self.spriteSystem:render("player", self.player.x + self.player.w/2, self.player.y + self.player.h/2)
+        spriteRendered = true
+    end
+    
+    -- Fallback to colored rectangle if sprite failed to load
+    if not spriteRendered then
+        love.graphics.setColor(COLOR_PLAYER[1], COLOR_PLAYER[2], COLOR_PLAYER[3])
+        love.graphics.rectangle('fill', self.player.x, self.player.y, self.player.w, self.player.h)
+    end
 
     for _, enemy in ipairs(self.enemies) do
         love.graphics.setColor(COLOR_ENEMY[1], COLOR_ENEMY[2], COLOR_ENEMY[3])
