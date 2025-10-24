@@ -10,64 +10,6 @@ function CombatSystem.new()
     return self
 end
 
-function CombatSystem:performAutoAttack(player, enemies, animationSystem)
-    if player.autoAttackCooldown > 0 then return end
-
-    local playerCenterX = player.x + player.w / 2
-    local playerCenterY = player.y + player.h / 2
-
-    -- Use player's facing direction for attack
-    local attackDirX = player.facingDirection.x
-    local attackDirY = player.facingDirection.y
-
-    -- Normalize direction
-    local length = math.sqrt(attackDirX * attackDirX + attackDirY * attackDirY)
-    if length > 0 then
-        attackDirX = attackDirX / length
-        attackDirY = attackDirY / length
-    end
-
-    -- Perform multi-strike attacks
-    for strike = 1, player.multiStrike do
-        local hitEnemies = {}
-
-        -- Check enemies in cone
-        for _, enemy in ipairs(enemies) do
-            local dx = enemy.x + enemy.w/2 - playerCenterX
-            local dy = enemy.y + enemy.h/2 - playerCenterY
-            local distance = math.sqrt(dx*dx + dy*dy)
-
-            if distance <= player.autoAttackRange then
-                -- Check if enemy is in cone
-                local dot = dx * attackDirX + dy * attackDirY
-                local angle = math.acos(math.max(-1, math.min(1, dot / distance)))
-
-                if angle <= player.autoAttackAngle / 2 then
-                    -- Apply damage with crit chance
-                    local damage = player.autoAttackDamage
-                    if math.random() < player.critChance then
-                        damage = damage * 2
-                    end
-                    enemy:takeDamage(damage, love.timer.getTime())
-                    table.insert(hitEnemies, enemy)
-
-                    -- Explosive attack
-                    if player.explosiveAttack > 0 then
-                        self:createExplosion(enemy.x + enemy.w/2, enemy.y + enemy.h/2, player.explosiveAttack, enemies, animationSystem)
-                    end
-                end
-            end
-        end
-
-        -- Chain lightning effect
-        if player.chainLightning > 0 and #hitEnemies > 0 then
-            self:chainLightningAttack(hitEnemies[1], player.chainLightning, enemies, player, animationSystem)
-        end
-    end
-
-    -- Set cooldown based on bonuses
-    player.autoAttackCooldown = player.baseAutoAttackCooldown
-end
 
 function CombatSystem:castFireball(player, enemies, animationSystem)
     if player.fireballCooldown > 0 then return end

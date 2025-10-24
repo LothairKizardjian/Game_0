@@ -129,17 +129,17 @@ end
 -- Initialize configuration
 function Config.init()
     Config.load()
-    
+
     -- Set Love2D window properties
     love.window.setTitle(Config.GAME.TITLE)
     love.window.setMode(Config.WINDOW.WIDTH, Config.WINDOW.HEIGHT, {
         resizable = Config.WINDOW.RESIZABLE,
         vsync = Config.GAME.VSYNC
     })
-    
+
     -- Set Love2D graphics properties
     love.graphics.setDefaultFilter("nearest", "nearest")
-    
+
     return true
 end
 

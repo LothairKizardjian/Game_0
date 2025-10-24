@@ -6,17 +6,17 @@ ObjectPool.__index = ObjectPool
 
 function ObjectPool.new(objectType, initialSize)
     local self = setmetatable({}, ObjectPool)
-    
+
     self.objectType = objectType
     self.pool = {}
     self.activeObjects = {}
     self.initialSize = initialSize or 50
-    
+
     -- Initialize pool with objects
     for i = 1, self.initialSize do
         table.insert(self.pool, self:createObject())
     end
-    
+
     return self
 end
 
@@ -57,7 +57,7 @@ end
 
 function ObjectPool:release(obj)
     if not obj then return end
-    
+
     obj.active = false
     -- Reset object properties
     if self.objectType == "projectile" then
@@ -72,7 +72,7 @@ function ObjectPool:release(obj)
         obj.rotation, obj.alpha = 0, 1.0
         obj.color = {1, 1, 1}
     end
-    
+
     -- Remove from active objects
     for i, activeObj in ipairs(self.activeObjects) do
         if activeObj == obj then
@@ -80,7 +80,7 @@ function ObjectPool:release(obj)
             break
         end
     end
-    
+
     table.insert(self.pool, obj)
 end
 

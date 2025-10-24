@@ -49,10 +49,6 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.godMode = false
         self.xpRain = false
         self.teleport = false
-        self.autoAttackCooldown = 0
-        self.autoAttackDamage = 1
-        self.autoAttackRange = 60
-        self.autoAttackAngle = math.pi / 3
         self.facingDirection = {x = 1, y = 0}
         self.baseAutoAttackCooldown = 0.5
         self.multiStrike = 1
@@ -199,14 +195,6 @@ function Entity:applyBonus(bonus)
             self.xpRain = bonus:getScaledValue()
         elseif bonus.effect == "teleport" then
             self.teleport = true
-        elseif bonus.effect == "auto_attack_damage" then
-            self.autoAttackDamage = self.autoAttackDamage + bonus:getScaledValue()
-        elseif bonus.effect == "auto_attack_range" then
-            self.autoAttackRange = self.autoAttackRange * (1 + bonus:getScaledValue())
-        elseif bonus.effect == "auto_attack_speed" then
-            self.baseAutoAttackCooldown = math.max(0.1, self.baseAutoAttackCooldown - bonus:getScaledValue())
-        elseif bonus.effect == "auto_attack_angle" then
-            self.autoAttackAngle = self.autoAttackAngle * (1 + bonus:getScaledValue())
         elseif bonus.effect == "multi_strike" then
             self.multiStrike = self.multiStrike + bonus:getScaledValue()
         elseif bonus.effect == "chain_lightning" then
@@ -246,10 +234,6 @@ function Entity:recalculateBonusEffects()
     self.explosiveDeath = 0
     self.timeSlow = 1.0
     self.xpMagnet = 1.0
-    self.autoAttackDamage = 1
-    self.autoAttackRange = 80
-    self.baseAutoAttackCooldown = 0.5
-    self.autoAttackAngle = math.pi / 3
     self.multiStrike = 1
     self.chainLightning = 0
     self.explosiveAttack = 0
@@ -287,14 +271,6 @@ function Entity:recalculateBonusEffects()
             self.timeSlow = self.timeSlow - bonus:getScaledValue()
         elseif bonus.effect == "xp_magnet" then
             self.xpMagnet = self.xpMagnet + bonus:getScaledValue()
-        elseif bonus.effect == "auto_attack_damage" then
-            self.autoAttackDamage = self.autoAttackDamage + bonus:getScaledValue()
-        elseif bonus.effect == "auto_attack_range" then
-            self.autoAttackRange = self.autoAttackRange * (1 + bonus:getScaledValue())
-        elseif bonus.effect == "auto_attack_speed" then
-            self.baseAutoAttackCooldown = math.max(0.1, self.baseAutoAttackCooldown - bonus:getScaledValue())
-        elseif bonus.effect == "auto_attack_angle" then
-            self.autoAttackAngle = self.autoAttackAngle * (1 + bonus:getScaledValue())
         elseif bonus.effect == "multi_strike" then
             self.multiStrike = self.multiStrike + bonus:getScaledValue()
         elseif bonus.effect == "chain_lightning" then

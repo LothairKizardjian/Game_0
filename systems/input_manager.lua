@@ -6,12 +6,12 @@ InputManager.__index = InputManager
 
 function InputManager.new()
     local self = setmetatable({}, InputManager)
-    
+
     -- Key states
     self.keys = {}
     self.keysPressed = {}
     self.keysReleased = {}
-    
+
     -- Mouse states
     self.mouse = {
         x = 0, y = 0,
@@ -19,7 +19,7 @@ function InputManager.new()
         buttonsPressed = {},
         buttonsReleased = {}
     }
-    
+
     -- Input mapping
     self.keyMappings = {
         -- Movement
@@ -27,21 +27,21 @@ function InputManager.new()
         down = {'s', 'down'},
         left = {'a', 'left'},
         right = {'d', 'right'},
-        
+
         -- Actions
         attack = {'space'},
         pause = {'escape', 'p'},
-        
+
         -- UI
         select = {'enter', 'return'},
         cancel = {'escape'}
     }
-    
+
     -- Input buffering
     self.inputBuffer = {}
     self.bufferTime = 0.2  -- 200ms buffer
     self.maxBufferSize = 10
-    
+
     return self
 end
 
@@ -50,7 +50,7 @@ function InputManager:update(dt)
     self.keysPressed = {}
     self.mouse.buttonsPressed = {}
     self.mouse.buttonsReleased = {}
-    
+
     -- Update input buffer
     for i = #self.inputBuffer, 1, -1 do
         local input = self.inputBuffer[i]
@@ -64,14 +64,14 @@ end
 function InputManager:keypressed(key)
     self.keys[key] = true
     self.keysPressed[key] = true
-    
+
     -- Add to input buffer
     table.insert(self.inputBuffer, {
         type = "key",
         key = key,
         time = self.bufferTime
     })
-    
+
     -- Limit buffer size
     if #self.inputBuffer > self.maxBufferSize then
         table.remove(self.inputBuffer, 1)
@@ -128,7 +128,7 @@ end
 function InputManager:isActionDown(action)
     local keys = self.keyMappings[action]
     if not keys then return false end
-    
+
     for _, key in ipairs(keys) do
         if self:isKeyDown(key) then
             return true
@@ -140,7 +140,7 @@ end
 function InputManager:isActionPressed(action)
     local keys = self.keyMappings[action]
     if not keys then return false end
-    
+
     for _, key in ipairs(keys) do
         if self:isKeyPressed(key) then
             return true
@@ -151,19 +151,19 @@ end
 
 function InputManager:getMovementVector()
     local x, y = 0, 0
-    
+
     if self:isActionDown('up') then y = y - 1 end
     if self:isActionDown('down') then y = y + 1 end
     if self:isActionDown('left') then x = x - 1 end
     if self:isActionDown('right') then x = x + 1 end
-    
+
     -- Normalize diagonal movement
     if x ~= 0 and y ~= 0 then
         local length = math.sqrt(x*x + y*y)
         x = x / length
         y = y / length
     end
-    
+
     return x, y
 end
 

@@ -310,10 +310,7 @@ function RogueScene:update(dt)
         self.player.speedBurstTime = self.player.speedBurstTime - dt
     end
 
-    -- Update auto-attack cooldown
-    if self.player.autoAttackCooldown > 0 then
-        self.player.autoAttackCooldown = self.player.autoAttackCooldown - dt
-    end
+    -- Auto-attack system removed
 
     -- Update magical power cooldowns
     if self.player.fireballCooldown > 0 then
@@ -604,10 +601,7 @@ function RogueScene:render()
         love.graphics.print(tostring(damageNum.damage), damageNum.x - 10, damageNum.y, 0, 0.8, 0.8)
     end
 
-    -- Draw auto-attack cone when attacking
-    if self.player.autoAttackCooldown > 0.4 then  -- Show for first 0.1 seconds
-        self:drawAttackCone()
-    end
+    -- Auto-attack system removed
 
     -- Draw animations
     self.animationSystem:render()
@@ -642,46 +636,6 @@ function RogueScene:drawHealthBar(entity, x, y, width, height)
     love.graphics.rectangle('line', x, y, width, height)
 end
 
-function RogueScene:drawAttackCone()
-    local playerCenterX = self.player.x + self.player.w / 2
-    local playerCenterY = self.player.y + self.player.h / 2
-
-    -- Use player's facing direction for attack cone
-    local attackDirX = self.player.facingDirection.x
-    local attackDirY = self.player.facingDirection.y
-
-    -- Normalize direction
-    local length = math.sqrt(attackDirX * attackDirX + attackDirY * attackDirY)
-    if length > 0 then
-        attackDirX = attackDirX / length
-        attackDirY = attackDirY / length
-    end
-
-    -- Calculate cone points
-    local range = self.player.autoAttackRange
-    local halfAngle = self.player.autoAttackAngle / 2
-
-    local leftX = attackDirX * math.cos(halfAngle) - attackDirY * math.sin(halfAngle)
-    local leftY = attackDirX * math.sin(halfAngle) + attackDirY * math.cos(halfAngle)
-    local rightX = attackDirX * math.cos(-halfAngle) - attackDirY * math.sin(-halfAngle)
-    local rightY = attackDirX * math.sin(-halfAngle) + attackDirY * math.cos(-halfAngle)
-
-    -- Draw cone
-    love.graphics.setColor(1, 0.8, 0.2, 0.6)  -- Orange with transparency
-    love.graphics.polygon('fill',
-        playerCenterX, playerCenterY,
-        playerCenterX + leftX * range, playerCenterY + leftY * range,
-        playerCenterX + rightX * range, playerCenterY + rightY * range
-    )
-
-    -- Draw cone outline
-    love.graphics.setColor(1, 0.6, 0, 0.8)
-    love.graphics.polygon('line',
-        playerCenterX, playerCenterY,
-        playerCenterX + leftX * range, playerCenterY + leftY * range,
-        playerCenterX + rightX * range, playerCenterY + rightY * range
-    )
-end
 
 function RogueScene:renderHUD()
     love.graphics.setColor(COLOR_UI[1], COLOR_UI[2], COLOR_UI[3])
@@ -691,12 +645,7 @@ function RogueScene:renderHUD()
     love.graphics.print("Enemies: " .. #self.enemies .. " | Killed: " .. self.player.enemiesKilled, 8, 72)
     love.graphics.print("Zoom: " .. string.format("%.1f", self.camera.zoom), 8, 94)
 
-    -- Auto-attack cooldown
-    if self.player.autoAttackCooldown > 0 then
-        love.graphics.print("Attack: " .. string.format("%.1f", self.player.autoAttackCooldown) .. "s", 8, 116)
-    else
-        love.graphics.print("Attack: Ready (SPACE)", 8, 116)
-    end
+    -- Auto-attack system removed
 
     -- Magical Powers
     local powerY = 138

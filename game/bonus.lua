@@ -45,11 +45,7 @@ local BONUS_DEFINITIONS = {
     {id = "xp_rain", name = "Divine Blessing", description = "Gain 1 XP every second", rarity = "godly", effect = "xp_rain", value = 1},
     {id = "teleport", name = "Divine Movement", description = "Teleport to random location every 5 seconds", rarity = "godly", effect = "teleport", value = 5},
 
-    -- New Offensive Bonuses
-    {id = "attack_damage", name = "Power Strike", description = "+1 Attack Damage", rarity = "common", effect = "auto_attack_damage", value = 1},
-    {id = "attack_range", name = "Long Reach", description = "+20% Attack Range", rarity = "common", effect = "auto_attack_range", value = 0.2},
-    {id = "attack_speed", name = "Quick Strike", description = "-0.1s Attack Cooldown", rarity = "rare", effect = "auto_attack_speed", value = 0.1},
-    {id = "attack_angle", name = "Wide Arc", description = "+20% Attack Angle", rarity = "rare", effect = "auto_attack_angle", value = 0.2},
+    -- Offensive Bonuses removed - auto attack system disabled
     {id = "multi_strike", name = "Double Strike", description = "Attack twice per use", rarity = "epic", effect = "multi_strike", value = 1},
     {id = "chain_lightning", name = "Chain Lightning", description = "Attack chains to nearby enemies", rarity = "legendary", effect = "chain_lightning", value = 3},
     {id = "explosive_attack", name = "Explosive Strike", description = "Attack creates explosion on impact", rarity = "legendary", effect = "explosive_attack", value = 2},

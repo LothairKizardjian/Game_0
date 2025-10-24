@@ -14,22 +14,22 @@ local STATES = {
 
 function GameState.new()
     local self = setmetatable({}, GameState)
-    
+
     self.currentState = STATES.PLAYING
     self.previousState = nil
     self.stateData = {}
     self.transitions = {}
-    
+
     return self
 end
 
 function GameState:setState(newState, data)
     if self.currentState == newState then return end
-    
+
     self.previousState = self.currentState
     self.currentState = newState
     self.stateData = data or {}
-    
+
     -- Call transition callbacks
     if self.transitions[newState] then
         self.transitions[newState](self.previousState, newState, self.stateData)
