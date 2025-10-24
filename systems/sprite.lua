@@ -17,7 +17,7 @@ function SpriteSystem:loadSprite(name, path)
     if self.loadedSprites[name] then
         return self.loadedSprites[name]
     end
-    
+
     print("Attempting to load sprite: " .. path)
     local success, sprite = pcall(love.graphics.newImage, path)
     if success then
@@ -71,11 +71,11 @@ end
 
 function SpriteSystem:render(name, x, y, rotation, scale)
     local sprite = self.sprites[name]
-    if not sprite then 
+    if not sprite then
         print("Sprite not found: " .. name)
-        return 
+        return
     end
-    
+
     -- Handle fallback sprite (colored rectangle)
     if sprite.isFallback then
         love.graphics.setColor(0.2, 0.6, 1.0)  -- Blue color for player
@@ -83,16 +83,16 @@ function SpriteSystem:render(name, x, y, rotation, scale)
         love.graphics.setColor(1, 1, 1)  -- Reset color
         return
     end
-    
+
     if not sprite.sprite then
         print("Sprite image not loaded for: " .. name)
         return
     end
-    
+
     local frame = sprite.currentFrame
     local frameX = (frame - 1) * sprite.frameWidth
     local frameY = 0
-    
+
     love.graphics.draw(
         sprite.sprite,
         x, y,
@@ -118,7 +118,7 @@ function SpriteSystem:createFallbackSprite(name)
         loop = false,
         isFallback = true
     }
-    
+
     self.sprites[name] = fallbackSprite
     return fallbackSprite
 end
@@ -126,12 +126,12 @@ end
 function SpriteSystem:setDirection(name, direction)
     local sprite = self.sprites[name]
     if not sprite then return end
-    
+
     -- Map direction to frame
     -- Knight_rotations_8dir.gif has 8 frames for 8 directions
     -- We'll use only 4 main directions (N, E, S, W)
     local frame = 1  -- Default to first frame
-    
+
     if direction.x == 0 and direction.y == -1 then
         frame = 1  -- North
     elseif direction.x == 1 and direction.y == 0 then
@@ -141,7 +141,7 @@ function SpriteSystem:setDirection(name, direction)
     elseif direction.x == -1 and direction.y == 0 then
         frame = 7  -- West
     end
-    
+
     sprite.currentFrame = frame
 end
 

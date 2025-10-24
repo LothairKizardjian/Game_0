@@ -522,7 +522,7 @@ function RogueScene:render()
         self.spriteSystem:render("player", self.player.x + self.player.w/2, self.player.y + self.player.h/2)
         spriteRendered = true
     end
-    
+
     -- Fallback to colored rectangle if sprite failed to load
     if not spriteRendered then
         love.graphics.setColor(COLOR_PLAYER[1], COLOR_PLAYER[2], COLOR_PLAYER[3])
