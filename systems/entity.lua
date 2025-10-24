@@ -1,5 +1,5 @@
 -- Entity System for Game_0
--- Simplified entity system for new power system
+-- Base Entity class with sprite support
 
 local Entity = {}
 Entity.__index = Entity
@@ -17,6 +17,11 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
     self.isPlayer = isPlayer or false
     self.damageCooldown = 0
     self.lastDamageTime = 0
+    self.facingDirection = {x = 0, y = 1}  -- Default facing south
+    
+    -- Sprite properties
+    self.spriteName = nil
+    self.spriteSystem = nil
 
     -- Player-specific stats
     if isPlayer then
@@ -48,16 +53,50 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.godMode = false
         self.xpRain = false
         self.teleport = false
-        self.facingDirection = {x = 1, y = 0}
         self.speedBurst = 0
         self.speedBurstTime = 0
-
+        
         -- New power system
         self.powers = {}
         self.orbitingBlades = nil
     end
 
     return self
+end
+
+function Entity:setSpriteSystem(spriteSystem)
+    self.spriteSystem = spriteSystem
+end
+
+function Entity:setSpriteName(spriteName)
+    self.spriteName = spriteName
+end
+
+function Entity:updateFacingDirection(dx, dy)
+    if dx ~= 0 or dy ~= 0 then
+        local length = math.sqrt(dx*dx + dy*dy)
+        self.facingDirection.x = dx / length
+        self.facingDirection.y = dy / length
+    end
+end
+
+function Entity:render()
+    if self.spriteSystem and self.spriteName then
+        -- Set sprite direction
+        if self.isPlayer then
+            self.spriteSystem:setDirection(self.spriteName, self.facingDirection)
+        else
+            self.spriteSystem:setEnemyDirection(self.spriteName, self.facingDirection)
+        end
+        
+        -- Reset color and render sprite
+        love.graphics.setColor(1, 1, 1, 1)
+        self.spriteSystem:render(self.spriteName, self.x + self.w/2, self.y + self.h/2)
+    else
+        -- Fallback to colored rectangle
+        love.graphics.setColor(self.color[1], self.color[2], self.color[3])
+        love.graphics.rectangle('fill', self.x, self.y, self.w, self.h)
+    end
 end
 
 function Entity:takeDamage(damage, currentTime)

@@ -1,6 +1,8 @@
 -- Enemy Spawning System for Game_0
 -- Handles enemy spawning, scaling, and management
 
+local Enemy = require('systems.enemy')
+
 local EnemySpawner = {}
 EnemySpawner.__index = EnemySpawner
 
@@ -66,55 +68,19 @@ function EnemySpawner:spawnEnemy(enemies, player, infiniteMap)
 
     -- Create enemy with scaling
     local enemySize = 32 - 8
-    local enemy = {
-        x = x * 32 + 4,
-        y = y * 32 + 4,
-        w = enemySize,
-        h = enemySize,
-        color = scalingFactor > 1.0 and {255/255, 100/255, 100/255} or {220/255, 80/255, 80/255},  -- Brighter red for scaled enemies
-        speed = 60 * scalingFactor,
-        hp = math.floor(3 * scalingFactor),
-        maxHp = math.floor(3 * scalingFactor),
-        isPlayer = false,
-        damageCooldown = 0.5,
-        lastDamageTime = 0,
-        attackPower = 1 * scalingFactor,  -- New property for attack power
-        scalingFactor = scalingFactor,  -- Store scaling factor for reference
-        attackCooldown = 1.0,  -- Attack cooldown in seconds
-        lastAttackTime = 0,  -- Time of last attack
-        facingDirection = {x = 0, y = 1}  -- Default facing south
-    }
+    local enemyColor = scalingFactor > 1.0 and {255/255, 100/255, 100/255} or {220/255, 80/255, 80/255}
+    local enemy = Enemy.new(
+        x * 32 + 4,
+        y * 32 + 4,
+        enemySize,
+        enemySize,
+        enemyColor,
+        60 * scalingFactor,
+        math.floor(3 * scalingFactor),
+        scalingFactor
+    )
 
-    -- Add enemy methods
-    enemy.getRect = function(self)
-        return {x = self.x, y = self.y, w = self.w, h = self.h}
-    end
-
-    enemy.collidesWith = function(self, other)
-        return self.x < other.x + other.w and
-               self.x + self.w > other.x and
-               self.y < other.y + other.h and
-               self.y + self.h > other.y
-    end
-
-    enemy.takeDamage = function(self, damage, currentTime)
-        if currentTime - self.lastDamageTime < self.damageCooldown then
-            return false
-        end
-
-        self.hp = self.hp - damage
-        self.lastDamageTime = currentTime
-
-        if self.hp <= 0 then
-            self.hp = 0
-        end
-
-        return true
-    end
-
-    enemy.getHealthPercent = function(self)
-        return self.hp / self.maxHp
-    end
+    -- Enemy is now a proper Entity with all methods inherited
 
     table.insert(enemies, enemy)
 end

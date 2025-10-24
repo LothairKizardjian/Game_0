@@ -5,7 +5,8 @@ local RogueScene = {}
 RogueScene.__index = RogueScene
 
 -- Import systems
-local Entity = require('systems.entity')
+local Player = require('systems.player')
+local Enemy = require('systems.enemy')
 local InfiniteMap = require('systems.infinite_map')
 local Camera = require('systems.camera')
 local AnimationSystem = require('systems.animation')
@@ -41,12 +42,13 @@ function RogueScene.new()
 
     -- Load player sprite
     self:loadPlayerSprite()
-    
+
     -- Load enemy sprite
     self:loadEnemySprite()
 
     -- Game state
-    self.player = Entity.new(0, 0, TILE - 12, TILE - 12, COLOR_PLAYER, 150, 10, true)
+    self.player = Player.new(0, 0, TILE - 12, TILE - 12, COLOR_PLAYER, 150, 10)
+    self.player:setSpriteSystem(self.spriteSystem)
     self.enemies = {}
     self.projectiles = {}
     self.damageNumbers = {}
@@ -73,7 +75,7 @@ function RogueScene:loadPlayerSprite()
     -- Load directional knight sprites using PNG files
     print("Loading knight sprites...")
     local success = self.spriteSystem:createDirectionalSprite("player", "assets/Knight_walk")
-    
+
     if success and self.spriteSystem.sprites["player"] then
         print("Knight sprites loaded successfully")
     else
@@ -87,7 +89,7 @@ function RogueScene:loadEnemySprite()
     -- Load directional skeleton sprites using PNG files
     print("Loading skeleton sprites...")
     local success = self.spriteSystem:createEnemySprite("enemy", "assets/skeleton_walk")
-    
+
     if success and self.spriteSystem.sprites["enemy"] then
         print("Skeleton sprites loaded successfully")
     else
@@ -253,11 +255,9 @@ function RogueScene:update(dt)
         self.moveDir.y = y / length
 
         -- Update facing direction when moving
-        self.player.facingDirection.x = self.moveDir.x
-        self.player.facingDirection.y = self.moveDir.y
-
-        -- Update sprite direction and start animation
-        self.spriteSystem:setDirection("player", self.player.facingDirection)
+        self.player:updateFacingDirection(self.moveDir.x, self.moveDir.y)
+        
+        -- Start animation
         if self.spriteSystem.sprites["player"] then
             self.spriteSystem.sprites["player"].playing = true
         end
@@ -299,8 +299,7 @@ function RogueScene:update(dt)
             local dirY = dy / length
             
             -- Update enemy facing direction
-            enemy.facingDirection.x = dirX
-            enemy.facingDirection.y = dirY
+            enemy:updateFacingDirection(dirX, dirY)
             
             self:moveEntity(enemy, dirX * enemy.speed * enemySpeedMultiplier * dt, dirY * enemy.speed * enemySpeedMultiplier * dt)
         end
@@ -544,19 +543,14 @@ function RogueScene:render()
     self.xpShardManager:render()
 
     -- Draw entities
-    -- Reset color before drawing player sprite
-    love.graphics.setColor(1, 1, 1, 1)
-    -- Draw player sprite
-    self.spriteSystem:render("player", self.player.x + self.player.w/2, self.player.y + self.player.h/2)
+    -- Draw player using entity render method
+    self.player:render()
 
     for _, enemy in ipairs(self.enemies) do
-        -- Set enemy sprite direction
-        self.spriteSystem:setEnemyDirection("enemy", enemy.facingDirection)
-        
-        -- Reset color before drawing enemy sprite
-        love.graphics.setColor(1, 1, 1, 1)
-        -- Draw enemy sprite
-        self.spriteSystem:render("enemy", enemy.x + enemy.w/2, enemy.y + enemy.h/2)
+        -- Set sprite system for enemy
+        enemy:setSpriteSystem(self.spriteSystem)
+        -- Draw enemy using entity render method
+        enemy:render()
     end
 
     -- Draw health bars
