@@ -50,7 +50,7 @@ function InfiniteMap:generateChunk(chunkX, chunkY)
             else
                 -- Use noise or simple pattern for terrain
                 local noise = math.sin(worldX * 0.1) * math.cos(worldY * 0.1)
-                if noise > 0.1 then  -- More floor tiles
+                if noise > -0.3 then  -- Much more floor tiles, fewer obstacles
                     chunk.tiles[x][y] = 0  -- Floor
                 else
                     chunk.tiles[x][y] = 1  -- Wall

@@ -16,10 +16,10 @@ end
 function EnemySpawner:update(dt, enemies, player, infiniteMap)
     self.spawnTimer = self.spawnTimer + dt
     local timeElapsed = love.timer.getTime() - self.startTime
-    
+
     -- Spawn slower over time (less frequent spawning)
     local spawnRate = math.max(2.0, 3.0 + timeElapsed * 0.05)  -- Spawn slower over time
-    
+
     -- Increase enemies per tier instead of more frequent spawning
     local enemiesPerSpawn = math.floor(1 + timeElapsed / 30)  -- More enemies per spawn every 30 seconds
     local maxEnemies = math.min(40, 15 + timeElapsed * 1.5)  -- Slightly more max enemies

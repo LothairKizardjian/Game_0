@@ -343,14 +343,20 @@ function RogueScene:update(dt)
 
     -- Update animations
     self.animationSystem:update(dt)
-    
+
     -- Update XP shards
-    local collectedXP = self.xpShardManager:update(dt, self.player.x + self.player.w/2, self.player.y + self.player.h/2, 
+    local collectedXP = self.xpShardManager:update(dt, self.player.x + self.player.w/2, self.player.y + self.player.h/2,
         self.player.collectRadius * self.player.collectRadiusMultiplier, self.player.xpMagnet)
-    
+
     -- Add collected XP to player
     if collectedXP > 0 then
         self.player.xp = self.player.xp + collectedXP
+        
+        -- Check for level up
+        while self.player.xp >= self.player.xpToNext do
+            self.player:levelUp()
+            self:showBonusSelection()
+        end
     end
 
     -- Update camera to follow player
