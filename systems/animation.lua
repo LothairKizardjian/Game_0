@@ -141,14 +141,14 @@ function AnimationSystem:render()
             love.graphics.setColor(1, 0.5, 0, anim.life / 1.0)
             love.graphics.circle('fill', anim.x, anim.y - anim.radius * 2, anim.radius * 0.4)
         elseif anim.type == "arcane_missile" then
-            -- Arcane missile - purple energy ball
+            -- Arcane missile - small purple energy ball
             love.graphics.push()
             love.graphics.translate(anim.x, anim.y)
             love.graphics.rotate(anim.rotation)
-            love.graphics.setColor(0.8, 0.3, 1, anim.life / 1.0)
-            love.graphics.circle('fill', 0, 0, 6)
-            love.graphics.setColor(1, 0.8, 1, anim.life / 1.0)
-            love.graphics.circle('fill', 0, 0, 3)
+            love.graphics.setColor(0.6, 0.2, 0.8, anim.life / 1.0)  -- More purple
+            love.graphics.circle('fill', 0, 0, 4)  -- Smaller size
+            love.graphics.setColor(0.8, 0.4, 1, anim.life / 1.0)  -- Brighter purple center
+            love.graphics.circle('fill', 0, 0, 2)  -- Smaller center
             love.graphics.pop()
         elseif anim.type == "shadow_bolt" then
             -- Shadow bolt - dark energy

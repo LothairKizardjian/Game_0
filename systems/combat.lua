@@ -224,23 +224,23 @@ function CombatSystem:castArcaneMissile(player, enemies, animationSystem)
 
     table.sort(enemiesByDistance, function(a, b) return a.distance < b.distance end)
 
-    for i = 1, math.min(3, #enemiesByDistance) do
-        local target = enemiesByDistance[i].enemy
+    -- Create only 1 arcane missile targeting the nearest enemy
+    if #enemiesByDistance > 0 then
+        local target = enemiesByDistance[1].enemy
         local projectile = self:createProjectile(playerCenterX, playerCenterY, target.x + target.w/2, target.y + target.h/2, "arcane_missile", 1, 300, enemies)
         if projectile then
+            -- Add arcane missile animation
+            local dx = target.x + target.w/2 - playerCenterX
+            local dy = target.y + target.h/2 - playerCenterY
+            local distance = math.sqrt(dx*dx + dy*dy)
+            local vx = (dx / distance) * 300
+            local vy = (dy / distance) * 300
+
+            animationSystem:addAnimation("arcane_missile", playerCenterX, playerCenterY, vx, vy, 0.8, {0.8, 0.3, 1}, {
+                rotation = 0
+            })
             return projectile
         end
-
-        -- Add arcane missile animation
-        local dx = target.x + target.w/2 - playerCenterX
-        local dy = target.y + target.h/2 - playerCenterY
-        local distance = math.sqrt(dx*dx + dy*dy)
-        local vx = (dx / distance) * 300
-        local vy = (dy / distance) * 300
-
-        animationSystem:addAnimation("arcane_missile", playerCenterX, playerCenterY, vx, vy, 0.8, {0.8, 0.3, 1}, {
-            rotation = 0
-        })
     end
 
     player.arcaneMissileCooldown = 1.0
