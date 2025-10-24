@@ -399,7 +399,7 @@ function RogueScene:updatePassiveBonuses(dt)
     -- God Mode
     if self.player.godMode and currentTime - self.player.lastGodMode >= 2.0 then
         for _, enemy in ipairs(self.enemies) do
-            enemy:takeDamage(self.player.godMode, currentTime)
+            enemy:takeDamage(5, currentTime)  -- God mode deals 5 damage
         end
         self.player.lastGodMode = currentTime
     end
