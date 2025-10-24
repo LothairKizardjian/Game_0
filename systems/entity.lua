@@ -87,6 +87,15 @@ function Entity:getHealthPercent()
     return self.hp / self.maxHp
 end
 
+function Entity:getRect()
+    return {
+        x = self.x,
+        y = self.y,
+        w = self.w,
+        h = self.h
+    }
+end
+
 function Entity:addXP(amount)
     if not self.isPlayer then return false end
 
