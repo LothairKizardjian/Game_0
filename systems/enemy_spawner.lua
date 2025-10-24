@@ -43,20 +43,33 @@ function EnemySpawner:spawnEnemy(enemies, player, infiniteMap)
         end
     until false
     
-    -- Create enemy
+    -- Calculate scaling based on time elapsed
+    local timeElapsed = love.timer.getTime() - self.startTime
+    local scalingFactor = 1.0
+    
+    if timeElapsed >= 30 then
+        -- Scale enemies after 30 seconds
+        local scalingTime = timeElapsed - 30
+        scalingFactor = 1.0 + (scalingTime / 60) * 0.5  -- Gradual scaling over 60 seconds
+        scalingFactor = math.min(scalingFactor, 2.0)  -- Cap at 2x scaling
+    end
+    
+    -- Create enemy with scaling
     local enemySize = 32 - 8
     local enemy = {
         x = x * 32 + 4,
         y = y * 32 + 4,
         w = enemySize,
         h = enemySize,
-        color = {220/255, 80/255, 80/255},
-        speed = 60,
-        hp = 3,
-        maxHp = 3,
+        color = scalingFactor > 1.0 and {255/255, 100/255, 100/255} or {220/255, 80/255, 80/255},  -- Brighter red for scaled enemies
+        speed = 60 * scalingFactor,
+        hp = math.floor(3 * scalingFactor),
+        maxHp = math.floor(3 * scalingFactor),
         isPlayer = false,
         damageCooldown = 0.5,
-        lastDamageTime = 0
+        lastDamageTime = 0,
+        attackPower = 1 * scalingFactor,  -- New property for attack power
+        scalingFactor = scalingFactor  -- Store scaling factor for reference
     }
     
     -- Add enemy methods

@@ -86,7 +86,7 @@ function RogueScene:findSafeSpawnPosition()
     while attempts < 100 do
         local x = math.random(-200, 200)
         local y = math.random(-200, 200)
-        
+
         -- Check if this position is safe (floor tile)
         if self.infiniteMap:getTileAtWorldPos(x, y) == 0 then
             self.player.x = x
@@ -95,7 +95,7 @@ function RogueScene:findSafeSpawnPosition()
         end
         attempts = attempts + 1
     end
-    
+
     -- Fallback: spawn at origin and force floor
     self.player.x = 0
     self.player.y = 0
@@ -107,23 +107,23 @@ function RogueScene:restartGame()
     self.enemies = {}
     self.moveDir = {x = 0, y = 0}
     self.keys = {}
-    
+
     -- Reset systems
     self.infiniteMap = InfiniteMap.new()
     self.animationSystem = AnimationSystem.new()
     self.combatSystem = CombatSystem.new()
     self.enemySpawner = EnemySpawner.new()
     self.xpShardManager = XPShardSystem.XPShardManager.new()
-    
+
     -- Reset game state
     self.bonusSelection = nil
     self.showingBonusSelection = false
     self.gameOver = false
     self.gameOverScene = nil
-    
+
     -- Find safe spawn position
     self:findSafeSpawnPosition()
-    
+
     -- Show bonus selection
     self:showBonusSelection()
 end
@@ -172,7 +172,7 @@ function RogueScene:mousepressed(x, y, button)
         end
         return
     end
-    
+
     -- Handle bonus selection mouse clicks
     if self.showingBonusSelection then
         self.bonusSelection:mousepressed(x, y, button)
@@ -200,6 +200,8 @@ function RogueScene:update(dt)
             self.gameOverScene = GameOverScene.new(self.player.level, self.player.xp, self.player.enemiesKilled)
             self.gameOverScene:onEnter()
         end
+        -- Update game over scene to handle mouse hover
+        self.gameOverScene:update(dt)
         return
     end
 
@@ -257,7 +259,8 @@ function RogueScene:update(dt)
         if self.player:collidesWith(enemy) then
             -- Check for damage immunity
             if self.player.damageImmunityTime <= 0 then
-                local damage = math.max(1, 1 - self.player.damageReduction)
+                local enemyDamage = enemy.attackPower or 1  -- Use enemy's attack power
+                local damage = math.max(1, enemyDamage - self.player.damageReduction)
                 if self.player:takeDamage(damage, love.timer.getTime()) then
                     self.player.damageImmunityTime = self.player.damageImmunity
                 end
