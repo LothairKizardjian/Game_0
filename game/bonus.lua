@@ -275,41 +275,24 @@ function PowerSelection:render()
         love.graphics.setColor(0.8, 0.8, 0.8)
         love.graphics.printf(baseDescription, x + 10, y + 80, 180, 'center')
 
-        -- Render damage text with proper character-by-character positioning
-        local damageNumbers = ""
-        local damageWord = " damage."
+        -- Simple approach: render complete text, then overwrite part of it
+        local fullText = ""
         
         if damageInfo.hasUpgrade then
-            damageNumbers = damageInfo.current .. " ( + " .. damageInfo.increase .. " )"
+            fullText = damageInfo.current .. " ( + " .. damageInfo.increase .. " ) damage."
         else
-            damageNumbers = damageInfo.current
+            fullText = damageInfo.current .. " damage."
         end
         
-        print("Damage numbers: " .. damageNumbers)
-        print("Damage word: " .. damageWord)
+        print("Full damage text: " .. fullText)
         
-        -- Calculate the full text width for centering
-        local font = love.graphics.getFont()
-        local numbersWidth = font:getWidth(damageNumbers)
-        local wordWidth = font:getWidth(damageWord)
-        local totalWidth = numbersWidth + wordWidth
-        
-        -- Center the entire text block
-        local startX = x + 10 + (180 - totalWidth) / 2
-        
-        -- Render damage numbers in blue
+        -- Render the complete text in blue, centered
         love.graphics.setColor(0.0, 0.8, 1.0)  -- Blue color
-        love.graphics.print(damageNumbers, startX, y + 100)
+        love.graphics.printf(fullText, x + 10, y + 100, 180, 'center')
         
-        -- Render "damage." in white right after the numbers
+        -- Now render just "damage." in white, centered (this will overwrite the blue "damage." part)
         love.graphics.setColor(1.0, 1.0, 1.0)  -- White color
-        love.graphics.print(damageWord, startX + numbersWidth, y + 100)
-        
-        -- Debug rectangles
-        love.graphics.setColor(1.0, 0.0, 0.0)  -- Red for numbers
-        love.graphics.rectangle('line', startX, y + 95, numbersWidth, 20)
-        love.graphics.setColor(0.0, 1.0, 0.0)  -- Green for word
-        love.graphics.rectangle('line', startX + numbersWidth, y + 95, wordWidth, 20)
+        love.graphics.printf("damage.", x + 10, y + 100, 180, 'center')
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)
