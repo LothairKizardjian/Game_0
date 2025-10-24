@@ -127,7 +127,11 @@ function CombatSystem:castIceShard(player, enemies, animationSystem)
 
     if nearestEnemy then
         -- Create ice shard projectile
-        self:createProjectile(playerCenterX, playerCenterY, nearestEnemy.x + nearestEnemy.w/2, nearestEnemy.y + nearestEnemy.h/2, "ice_shard", 2, 150, enemies)
+        local projectile = self:createProjectile(playerCenterX, playerCenterY, nearestEnemy.x + nearestEnemy.w/2, nearestEnemy.y + nearestEnemy.h/2, "ice_shard", 2, 150, enemies)
+        if projectile then
+            -- Return projectile to be added to main scene
+            return projectile
+        end
 
         -- Add ice shard animation
         local dx = nearestEnemy.x + nearestEnemy.w/2 - playerCenterX
@@ -189,7 +193,10 @@ function CombatSystem:castMeteor(player, enemies, animationSystem)
     if #enemies > 0 then
         local targetEnemy = enemies[math.random(1, #enemies)]
         -- Create meteor projectile from above
-        self:createProjectile(targetEnemy.x + targetEnemy.w/2, -50, targetEnemy.x + targetEnemy.w/2, targetEnemy.y + targetEnemy.h/2, "meteor", 5, 100, enemies)
+        local projectile = self:createProjectile(targetEnemy.x + targetEnemy.w/2, -50, targetEnemy.x + targetEnemy.w/2, targetEnemy.y + targetEnemy.h/2, "meteor", 5, 100, enemies)
+        if projectile then
+            return projectile
+        end
 
         -- Add meteor animation
         animationSystem:addAnimation("meteor", targetEnemy.x + targetEnemy.w/2, -50, 0, 100, 2.0, {1, 0.3, 0}, {
@@ -219,7 +226,10 @@ function CombatSystem:castArcaneMissile(player, enemies, animationSystem)
 
     for i = 1, math.min(3, #enemiesByDistance) do
         local target = enemiesByDistance[i].enemy
-        self:createProjectile(playerCenterX, playerCenterY, target.x + target.w/2, target.y + target.h/2, "arcane_missile", 1, 300, enemies)
+        local projectile = self:createProjectile(playerCenterX, playerCenterY, target.x + target.w/2, target.y + target.h/2, "arcane_missile", 1, 300, enemies)
+        if projectile then
+            return projectile
+        end
 
         -- Add arcane missile animation
         local dx = target.x + target.w/2 - playerCenterX
@@ -258,7 +268,10 @@ function CombatSystem:castShadowBolt(player, enemies, animationSystem)
 
     if nearestEnemy then
         -- Create shadow bolt projectile
-        self:createProjectile(playerCenterX, playerCenterY, nearestEnemy.x + nearestEnemy.w/2, nearestEnemy.y + nearestEnemy.h/2, "shadow_bolt", 4, 250, enemies)
+        local projectile = self:createProjectile(playerCenterX, playerCenterY, nearestEnemy.x + nearestEnemy.w/2, nearestEnemy.y + nearestEnemy.h/2, "shadow_bolt", 4, 250, enemies)
+        if projectile then
+            return projectile
+        end
 
         -- Add shadow bolt animation
         local dx = nearestEnemy.x + nearestEnemy.w/2 - playerCenterX
@@ -276,40 +289,27 @@ function CombatSystem:castShadowBolt(player, enemies, animationSystem)
 end
 
 function CombatSystem:createProjectile(startX, startY, targetX, targetY, type, damage, speed, enemies)
-    -- Simple projectile system - for now just deal damage immediately
+    -- Create projectile object
     local dx = targetX - startX
     local dy = targetY - startY
     local distance = math.sqrt(dx*dx + dy*dy)
-
+    
     if distance > 0 then
-        -- Find enemies in the path
-        for _, enemy in ipairs(enemies) do
-            local enemyX = enemy.x + enemy.w/2
-            local enemyY = enemy.y + enemy.h/2
-
-            -- Check if enemy is in the path (simplified)
-            local enemyDx = enemyX - startX
-            local enemyDy = enemyY - startY
-            local dot = (dx * enemyDx + dy * enemyDy) / (distance * distance)
-
-            if dot >= 0 and dot <= 1 then
-                local projDx = enemyX - startX
-                local projDy = enemyY - startY
-                local projDistance = math.sqrt(projDx*projDx + projDy*projDy)
-                local lineDistance = math.abs(dx * enemyDy - dy * enemyDx) / distance
-
-                if lineDistance < 20 and projDistance <= distance then  -- Within 20 pixels of line
-                    enemy:takeDamage(damage, love.timer.getTime())
-
-                    -- Special effects
-                    if type == "ice_shard" then
-                        -- Slow enemy (simplified)
-                        enemy.speed = enemy.speed * 0.5
-                    end
-                end
-            end
-        end
+        local projectile = {
+            x = startX,
+            y = startY,
+            vx = (dx / distance) * speed,
+            vy = (dy / distance) * speed,
+            type = type,
+            damage = damage,
+            life = 2.0,  -- 2 seconds max life
+            size = 8,
+            piercing = (type == "shadow_bolt")
+        }
+        
+        return projectile
     end
+    return nil
 end
 
 function CombatSystem:createExplosion(x, y, damage, enemies, animationSystem)

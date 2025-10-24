@@ -40,6 +40,8 @@ function RogueScene.new()
     -- Game state
     self.player = Entity.new(0, 0, TILE - 12, TILE - 12, COLOR_PLAYER, 150, 10, true)
     self.enemies = {}
+    self.projectiles = {}
+    self.damageNumbers = {}
     self.moveDir = {x = 0, y = 0}
     self.keys = {}
 
@@ -343,7 +345,7 @@ function RogueScene:update(dt)
     self:updatePassiveBonuses(dt)
 
     -- Automatic magical powers
-    self.combatSystem:updateAutomaticPowers(self.player, self.enemies, self.animationSystem)
+    self:updateAutomaticPowers(dt)
 
     -- Update animations
     self.animationSystem:update(dt)
@@ -354,7 +356,7 @@ function RogueScene:update(dt)
 
     -- Add collected XP to player
     if collectedXP > 0 then
-        self.player.xp = self.player.xp + collectedXP
+        self.player.xp = self.player.xp + collectedXP * self.player.xpMultiplier
 
         -- Check for level up
         while self.player.xp >= self.player.xpToNext do
@@ -363,8 +365,139 @@ function RogueScene:update(dt)
         end
     end
 
+    -- Update projectiles
+    self:updateProjectiles(dt)
+    
+    -- Update damage numbers
+    self:updateDamageNumbers(dt)
+
     -- Update camera to follow player
     self.camera:update(dt, self.player.x, self.player.y, self.player.w, self.player.h)
+end
+
+function RogueScene:updateProjectiles(dt)
+    for i = #self.projectiles, 1, -1 do
+        local projectile = self.projectiles[i]
+        
+        -- Update position
+        projectile.x = projectile.x + projectile.vx * dt
+        projectile.y = projectile.y + projectile.vy * dt
+        projectile.life = projectile.life - dt
+        
+        -- Check collision with enemies
+        for _, enemy in ipairs(self.enemies) do
+            local dx = projectile.x - (enemy.x + enemy.w/2)
+            local dy = projectile.y - (enemy.y + enemy.h/2)
+            local distance = math.sqrt(dx*dx + dy*dy)
+            
+            if distance < projectile.size + enemy.w/2 then
+                -- Hit enemy
+                enemy:takeDamage(projectile.damage, love.timer.getTime())
+                
+                -- Add damage number
+                self:addDamageNumber(enemy.x + enemy.w/2, enemy.y, projectile.damage)
+                
+                -- Special effects
+                if projectile.type == "ice_shard" then
+                    enemy.speed = enemy.speed * 0.5  -- Slow enemy
+                end
+                
+                -- Remove projectile unless piercing
+                if not projectile.piercing then
+                    table.remove(self.projectiles, i)
+                    break
+                end
+            end
+        end
+        
+        -- Remove expired projectiles
+        if projectile.life <= 0 then
+            table.remove(self.projectiles, i)
+        end
+    end
+end
+
+function RogueScene:updateDamageNumbers(dt)
+    for i = #self.damageNumbers, 1, -1 do
+        local damageNum = self.damageNumbers[i]
+        damageNum.y = damageNum.y - 50 * dt  -- Float upward
+        damageNum.life = damageNum.life - dt
+        
+        if damageNum.life <= 0 then
+            table.remove(self.damageNumbers, i)
+        end
+    end
+end
+
+function RogueScene:addDamageNumber(x, y, damage)
+    table.insert(self.damageNumbers, {
+        x = x,
+        y = y,
+        damage = damage,
+        life = 1.0
+    })
+end
+
+function RogueScene:updateAutomaticPowers(dt)
+    -- Update cooldowns
+    if self.player.fireballCooldown > 0 then
+        self.player.fireballCooldown = self.player.fireballCooldown - dt
+    end
+    if self.player.iceShardCooldown > 0 then
+        self.player.iceShardCooldown = self.player.iceShardCooldown - dt
+    end
+    if self.player.lightningBoltCooldown > 0 then
+        self.player.lightningBoltCooldown = self.player.lightningBoltCooldown - dt
+    end
+    if self.player.meteorCooldown > 0 then
+        self.player.meteorCooldown = self.player.meteorCooldown - dt
+    end
+    if self.player.arcaneMissileCooldown > 0 then
+        self.player.arcaneMissileCooldown = self.player.arcaneMissileCooldown - dt
+    end
+    if self.player.shadowBoltCooldown > 0 then
+        self.player.shadowBoltCooldown = self.player.shadowBoltCooldown - dt
+    end
+
+    -- Cast magical powers
+    if self.player.fireball and self.player.fireballCooldown <= 0 and #self.enemies > 0 then
+        local projectile = self.combatSystem:castFireball(self.player, self.enemies, self.animationSystem)
+        if projectile then
+            table.insert(self.projectiles, projectile)
+        end
+    end
+
+    if self.player.iceShard and self.player.iceShardCooldown <= 0 and #self.enemies > 0 then
+        local projectile = self.combatSystem:castIceShard(self.player, self.enemies, self.animationSystem)
+        if projectile then
+            table.insert(self.projectiles, projectile)
+        end
+    end
+
+    if self.player.lightningBolt and self.player.lightningBoltCooldown <= 0 and #self.enemies > 0 then
+        self.combatSystem:castLightningBolt(self.player, self.enemies, self.animationSystem)
+    end
+
+    if self.player.meteor and self.player.meteorCooldown <= 0 and #self.enemies > 0 then
+        local projectile = self.combatSystem:castMeteor(self.player, self.enemies, self.animationSystem)
+        if projectile then
+            table.insert(self.projectiles, projectile)
+        end
+    end
+
+    if self.player.arcaneMissile and self.player.arcaneMissileCooldown <= 0 and #self.enemies > 0 then
+        local projectile = self.combatSystem:castArcaneMissile(self.player, self.enemies, self.animationSystem)
+        if projectile then
+            table.insert(self.projectiles, projectile)
+        end
+    end
+
+    if self.player.shadowBolt and self.player.shadowBoltCooldown <= 0 and #self.enemies > 0 then
+        local projectile = self.combatSystem:castShadowBolt(self.player, self.enemies, self.animationSystem)
+        if projectile then
+            table.insert(self.projectiles, projectile)
+        end
+    end
 end
 
 function RogueScene:moveEntity(entity, dx, dy)
@@ -458,6 +591,18 @@ function RogueScene:render()
     end
 
     -- Collect radius animation removed
+
+    -- Draw projectiles
+    for _, projectile in ipairs(self.projectiles) do
+        love.graphics.setColor(1, 0.5, 0, 0.8)
+        love.graphics.circle('fill', projectile.x, projectile.y, projectile.size)
+    end
+
+    -- Draw damage numbers
+    for _, damageNum in ipairs(self.damageNumbers) do
+        love.graphics.setColor(1, 0.2, 0.2, damageNum.life)
+        love.graphics.print(tostring(damageNum.damage), damageNum.x - 10, damageNum.y, 0, 0.8, 0.8)
+    end
 
     -- Draw auto-attack cone when attacking
     if self.player.autoAttackCooldown > 0.4 then  -- Show for first 0.1 seconds

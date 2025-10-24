@@ -80,12 +80,12 @@ function AnimationSystem:addAnimation(type, x, y, vx, vy, life, color, data)
         anim.y2 = data.y2
         anim.alpha = data.alpha or 1.0
     end
-    
+
     -- Add rotation data for spinning animations
     if (type == "ice_shard" or type == "arcane_missile") and data then
         anim.rotation = data.rotation or 0
     end
-    
+
     -- Add alpha data for fading animations
     if (type == "lightning_bolt" or type == "shadow_bolt") and data then
         anim.alpha = data.alpha or 1.0
