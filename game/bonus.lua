@@ -202,14 +202,14 @@ end
 
 function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
     self.spawnTimer = self.spawnTimer + dt
-    
+
     -- Spawn meteors with delay between each
     if self.spawnTimer >= self.spawnInterval and #self.meteors < self.maxMeteors then
         -- Spawn one meteor at a time with delay
         self:spawnMeteor(playerX, playerY)
         self.spawnTimer = 0
         -- Set a shorter interval for subsequent meteors
-        self.spawnInterval = 0.5  -- 0.5 second delay between meteors
+        self.spawnInterval = 0.3  -- 0.3 second delay between meteors
     end
 
     -- Update existing meteors
@@ -234,7 +234,7 @@ function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
             table.remove(self.meteors, i)
         end
     end
-    
+
     -- Reset spawn interval when all meteors are destroyed
     if #self.meteors == 0 then
         self.spawnInterval = 2.0  -- Reset to original interval
