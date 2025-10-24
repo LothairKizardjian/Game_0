@@ -43,7 +43,7 @@ function CombatSystem:castFireball(player, enemies, animationSystem)
             animationSystem:addAnimation("fireball", playerCenterX, playerCenterY, dx/length * 200, dy/length * 200, 1.0, {1, 0.3, 0})
         end
 
-        player.fireballCooldown = 2.0
+        player.fireballCooldown = 3.0
     end
 end
 
@@ -86,7 +86,7 @@ function CombatSystem:castIceShard(player, enemies, animationSystem)
             rotation = 0
         })
 
-        player.iceShardCooldown = 1.5
+        player.iceShardCooldown = 2.5
     end
 end
 
@@ -124,7 +124,7 @@ function CombatSystem:castLightningBolt(player, enemies, animationSystem)
 
         -- Chain lightning effect
         self:chainLightningAttack(nearestEnemy, 3, enemies, player, animationSystem)
-        player.lightningBoltCooldown = 3.0
+        player.lightningBoltCooldown = 4.0
     end
 end
 
@@ -145,7 +145,7 @@ function CombatSystem:castMeteor(player, enemies, animationSystem)
             radius = 10
         })
 
-        player.meteorCooldown = 4.0
+        player.meteorCooldown = 5.0
     end
 end
 
@@ -185,7 +185,7 @@ function CombatSystem:castArcaneMissile(player, enemies, animationSystem)
         end
     end
 
-    player.arcaneMissileCooldown = 1.0
+    player.arcaneMissileCooldown = 2.0
 end
 
 function CombatSystem:castShadowBolt(player, enemies, animationSystem)
@@ -226,7 +226,7 @@ function CombatSystem:castShadowBolt(player, enemies, animationSystem)
             alpha = 1.0
         })
 
-        player.shadowBoltCooldown = 2.5
+        player.shadowBoltCooldown = 3.5
     end
 end
 
