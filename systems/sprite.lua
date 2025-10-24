@@ -6,10 +6,10 @@ SpriteSystem.__index = SpriteSystem
 
 function SpriteSystem.new()
     local self = setmetatable({}, SpriteSystem)
-    
+
     self.sprites = {}
     self.loadedSprites = {}
-    
+
     return self
 end
 
@@ -17,7 +17,7 @@ function SpriteSystem:loadSprite(name, path)
     if self.loadedSprites[name] then
         return self.loadedSprites[name]
     end
-    
+
     print("Loading sprite: " .. path)
     local success, sprite = pcall(love.graphics.newImage, path)
     if success then
@@ -36,8 +36,8 @@ function SpriteSystem:createDirectionalSprite(name, basePath)
         currentDirection = "south",  -- Default direction
         frameWidth = 32,
         frameHeight = 32,
-        frameCount = 1,
-        frameDuration = 0.2,
+        frameCount = 4,  -- Assuming 4 frames per direction
+        frameDuration = 0.15,  -- Faster animation for walking
         currentFrame = 1,
         frameTime = 0,
         playing = true,
@@ -62,11 +62,11 @@ function SpriteSystem:update(dt)
     for name, sprite in pairs(self.sprites) do
         if sprite.playing and sprite.frameCount > 1 then
             sprite.frameTime = sprite.frameTime + dt
-            
+
             if sprite.frameTime >= sprite.frameDuration then
                 sprite.frameTime = sprite.frameTime - sprite.frameDuration
                 sprite.currentFrame = sprite.currentFrame + 1
-                
+
                 if sprite.currentFrame > sprite.frameCount then
                     if sprite.loop then
                         sprite.currentFrame = 1
@@ -106,8 +106,20 @@ function SpriteSystem:render(name, x, y, rotation, scale)
         return
     end
     
+    -- Calculate the frame position in the sprite sheet
+    local frameX = (sprite.currentFrame - 1) * sprite.frameWidth
+    local frameY = 0
+    
+    -- Create a quad for the current frame
+    local quad = love.graphics.newQuad(
+        frameX, frameY,
+        sprite.frameWidth, sprite.frameHeight,
+        directionSprite:getWidth(), directionSprite:getHeight()
+    )
+    
     love.graphics.draw(
         directionSprite,
+        quad,
         x, y,
         rotation or 0,
         scale or 1,
@@ -120,10 +132,10 @@ end
 function SpriteSystem:setDirection(name, direction)
     local sprite = self.sprites[name]
     if not sprite then return end
-    
+
     -- Map direction vector to direction name
     local directionName = "south"  -- Default
-    
+
     if direction.x == 0 and direction.y == -1 then
         directionName = "north"
     elseif direction.x == 1 and direction.y == 0 then
@@ -133,7 +145,7 @@ function SpriteSystem:setDirection(name, direction)
     elseif direction.x == -1 and direction.y == 0 then
         directionName = "west"
     end
-    
+
     sprite.currentDirection = directionName
 end
 
@@ -152,7 +164,7 @@ function SpriteSystem:createFallbackSprite(name)
         loop = false,
         isFallback = true
     }
-    
+
     self.sprites[name] = fallbackSprite
     return fallbackSprite
 end

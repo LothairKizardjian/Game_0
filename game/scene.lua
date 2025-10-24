@@ -70,7 +70,7 @@ function RogueScene:loadPlayerSprite()
     -- Load directional knight sprites using PNG files
     print("Loading knight sprites...")
     local success = self.spriteSystem:createDirectionalSprite("player", "assets/Knight_walk")
-    
+
     if success and self.spriteSystem.sprites["player"] then
         print("Knight sprites loaded successfully")
     else
@@ -238,12 +238,21 @@ function RogueScene:update(dt)
         -- Update facing direction when moving
         self.player.facingDirection.x = self.moveDir.x
         self.player.facingDirection.y = self.moveDir.y
-
-        -- Update sprite direction
+        
+        -- Update sprite direction and start animation
         self.spriteSystem:setDirection("player", self.player.facingDirection)
+        if self.spriteSystem.sprites["player"] then
+            self.spriteSystem.sprites["player"].playing = true
+        end
     else
         self.moveDir.x = 0
         self.moveDir.y = 0
+        
+        -- Stop animation when not moving
+        if self.spriteSystem.sprites["player"] then
+            self.spriteSystem.sprites["player"].playing = false
+            self.spriteSystem.sprites["player"].currentFrame = 1  -- Reset to first frame
+        end
     end
 
     -- Calculate player speed with bonuses
