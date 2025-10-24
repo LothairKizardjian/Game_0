@@ -31,10 +31,14 @@ Game_0 is a lightweight, modular roguelike foundation using Love2D (Lua) with si
 - `assets/` — sprites/sfx (placeholder for now)
 
 ## Recent Updates
-- **Camera System**: Added smooth camera following with zoom controls (0.5x to 4.0x)
-- **Camera Boundaries**: Prevents camera from showing outside map area
-- **Enhanced HUD**: Shows zoom level and improved UI
-- **Zoom Controls**: +/= to zoom in, - to zoom out, 0 to reset
+- **Large World**: Increased map size from 25x18 to 50x35 tiles
+- **Room Generation**: Implemented procedural room-based map generation
+- **Corridor System**: Rooms connected with horizontal and vertical corridors
+- **Improved Movement**: Smaller player size for easier navigation
+- **Enhanced Enemies**: 8-15 enemies for larger world
+- **Better HUD**: Shows map size, enemy count, and zoom level
+- **Camera System**: Smooth following with zoom controls (0.5x to 4.0x)
+- **Camera Boundaries**: Prevents viewing outside map area
 
 ## Migration Notes
 - Migrated from Python/Pygame to Love2D for better performance
