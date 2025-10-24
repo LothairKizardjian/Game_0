@@ -164,7 +164,7 @@ Meteor.__index = Meteor
 
 function Meteor.new(level)
     local self = setmetatable({}, Meteor)
-    
+
     self.level = level or 1
     self.damage = 3 * self.level
     self.radius = 40 + (self.level - 1) * 10  -- Radius increases with level
@@ -172,7 +172,7 @@ function Meteor.new(level)
     self.spawnTimer = 0
     self.spawnInterval = 2.0  -- Spawn every 2 seconds
     self.maxMeteors = math.min(3, math.floor(self.level / 2) + 1)  -- More meteors at higher levels
-    
+
     return self
 end
 
@@ -264,16 +264,24 @@ function PowerSelection:generatePowers(count)
 
         -- Check if player already has this power
         local existingLevel = 1
+        local isMaxLevel = false
         for _, existingPower in ipairs(self.playerPowers) do
             if existingPower.id == powerDef.id then
-                existingLevel = existingPower.level + 1
+                if existingPower.level >= 10 then
+                    isMaxLevel = true
+                    break
+                end
+                existingLevel = math.min(10, existingPower.level + 1)  -- Cap at level 10
                 break
             end
         end
 
-        local power = Power.new(powerDef.id, powerDef.name, powerDef.description, powerDef.rarity, existingLevel)
-        power.playerPowers = self.playerPowers  -- Pass player powers for damage calculation
-        table.insert(self.powers, power)
+        -- Skip if power is already at max level
+        if not isMaxLevel then
+            local power = Power.new(powerDef.id, powerDef.name, powerDef.description, powerDef.rarity, existingLevel)
+            power.playerPowers = self.playerPowers  -- Pass player powers for damage calculation
+            table.insert(self.powers, power)
+        end
     end
 end
 

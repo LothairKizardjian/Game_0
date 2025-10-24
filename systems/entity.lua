@@ -190,7 +190,7 @@ function Entity:applyPower(power)
     if power.id == "orbiting_blades" then
         if self.orbitingBlades then
             -- Upgrade existing orbiting blades
-            self.orbitingBlades.level = self.orbitingBlades.level + 1
+            self.orbitingBlades.level = math.min(10, self.orbitingBlades.level + 1)  -- Cap at level 10
             self.orbitingBlades.damage = 2 * self.orbitingBlades.level
         else
             -- Create new orbiting blades
@@ -200,7 +200,7 @@ function Entity:applyPower(power)
     elseif power.id == "meteor" then
         if self.meteor then
             -- Upgrade existing meteor
-            self.meteor.level = self.meteor.level + 1
+            self.meteor.level = math.min(10, self.meteor.level + 1)  -- Cap at level 10
             self.meteor.damage = 3 * self.meteor.level
             self.meteor.radius = 40 + (self.meteor.level - 1) * 10  -- Update radius
             self.meteor.maxMeteors = math.min(3, math.floor(self.meteor.level / 2) + 1)
