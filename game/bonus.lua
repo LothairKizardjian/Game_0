@@ -267,19 +267,15 @@ function PowerSelection:render()
         -- Description with damage info
         local damageInfo = power:getDamageInfo()
         local descriptionText = power.description
-        
+
         if damageInfo.hasUpgrade then
             descriptionText = descriptionText .. "\n\nCurrent: " .. damageInfo.current .. " damage\nUpgrade to: " .. (damageInfo.current + damageInfo.increase) .. " damage"
         else
             descriptionText = descriptionText .. "\n\nDamage: " .. damageInfo.current
         end
-        
+
         love.graphics.setColor(0.8, 0.8, 0.8)
         love.graphics.printf(descriptionText, x + 10, y + 80, 180, 'center')
-
-        -- Key indicator
-        love.graphics.setColor(1, 1, 0)
-        love.graphics.printf("Press " .. i, x, y + 250, 200, 'center')
     end
 end
 
