@@ -128,18 +128,18 @@ function CombatSystem:castIceShard(player, enemies, animationSystem)
     if nearestEnemy then
         -- Create ice shard projectile
         self:createProjectile(playerCenterX, playerCenterY, nearestEnemy.x + nearestEnemy.w/2, nearestEnemy.y + nearestEnemy.h/2, "ice_shard", 2, 150, enemies)
-        
+
         -- Add ice shard animation
         local dx = nearestEnemy.x + nearestEnemy.w/2 - playerCenterX
         local dy = nearestEnemy.y + nearestEnemy.h/2 - playerCenterY
         local distance = math.sqrt(dx*dx + dy*dy)
         local vx = (dx / distance) * 150
         local vy = (dy / distance) * 150
-        
+
         animationSystem:addAnimation("ice_shard", playerCenterX, playerCenterY, vx, vy, 1.0, {0.5, 0.8, 1}, {
             rotation = 0
         })
-        
+
         player.iceShardCooldown = 1.5
     end
 end
@@ -171,11 +171,11 @@ function CombatSystem:castLightningBolt(player, enemies, animationSystem)
         local distance = math.sqrt(dx*dx + dy*dy)
         local vx = (dx / distance) * 200
         local vy = (dy / distance) * 200
-        
+
         animationSystem:addAnimation("lightning_bolt", playerCenterX, playerCenterY, vx, vy, 0.5, {1, 1, 0.5}, {
             alpha = 1.0
         })
-        
+
         -- Chain lightning effect
         self:chainLightningAttack(nearestEnemy, 3, enemies, player, animationSystem)
         player.lightningBoltCooldown = 3.0
@@ -190,12 +190,12 @@ function CombatSystem:castMeteor(player, enemies, animationSystem)
         local targetEnemy = enemies[math.random(1, #enemies)]
         -- Create meteor projectile from above
         self:createProjectile(targetEnemy.x + targetEnemy.w/2, -50, targetEnemy.x + targetEnemy.w/2, targetEnemy.y + targetEnemy.h/2, "meteor", 5, 100, enemies)
-        
+
         -- Add meteor animation
         animationSystem:addAnimation("meteor", targetEnemy.x + targetEnemy.w/2, -50, 0, 100, 2.0, {1, 0.3, 0}, {
             radius = 10
         })
-        
+
         player.meteorCooldown = 4.0
     end
 end
@@ -220,14 +220,14 @@ function CombatSystem:castArcaneMissile(player, enemies, animationSystem)
     for i = 1, math.min(3, #enemiesByDistance) do
         local target = enemiesByDistance[i].enemy
         self:createProjectile(playerCenterX, playerCenterY, target.x + target.w/2, target.y + target.h/2, "arcane_missile", 1, 300, enemies)
-        
+
         -- Add arcane missile animation
         local dx = target.x + target.w/2 - playerCenterX
         local dy = target.y + target.h/2 - playerCenterY
         local distance = math.sqrt(dx*dx + dy*dy)
         local vx = (dx / distance) * 300
         local vy = (dy / distance) * 300
-        
+
         animationSystem:addAnimation("arcane_missile", playerCenterX, playerCenterY, vx, vy, 0.8, {0.8, 0.3, 1}, {
             rotation = 0
         })
@@ -259,18 +259,18 @@ function CombatSystem:castShadowBolt(player, enemies, animationSystem)
     if nearestEnemy then
         -- Create shadow bolt projectile
         self:createProjectile(playerCenterX, playerCenterY, nearestEnemy.x + nearestEnemy.w/2, nearestEnemy.y + nearestEnemy.h/2, "shadow_bolt", 4, 250, enemies)
-        
+
         -- Add shadow bolt animation
         local dx = nearestEnemy.x + nearestEnemy.w/2 - playerCenterX
         local dy = nearestEnemy.y + nearestEnemy.h/2 - playerCenterY
         local distance = math.sqrt(dx*dx + dy*dy)
         local vx = (dx / distance) * 250
         local vy = (dy / distance) * 250
-        
+
         animationSystem:addAnimation("shadow_bolt", playerCenterX, playerCenterY, vx, vy, 1.2, {0.2, 0.1, 0.3}, {
             alpha = 1.0
         })
-        
+
         player.shadowBoltCooldown = 2.5
     end
 end
