@@ -1,1 +1,18 @@
-pygame>=2.5.0
+# Love2D Requirements
+#
+# This project now uses Love2D instead of Python/Pygame
+#
+# Requirements:
+# - Love2D 11.0 or higher
+# - Download from: https://love2d.org/
+#
+# Installation:
+# 1. Download and install Love2D for your platform
+# 2. Run the game with: love .
+# 3. Or drag the Game_0 folder onto the Love2D executable
+#
+# Performance Benefits:
+# - 2-5x faster execution than Python
+# - Single executable deployment
+# - Better 2D graphics optimization
+# - Cross-platform support

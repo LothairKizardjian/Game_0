@@ -1,19 +1,19 @@
 # Game_0
 
-A small, modular roguelike foundation using Python + Pygame and simple placeholder graphics. Start small, grow features iteratively.
+A small, modular roguelike foundation using Love2D (Lua) with simple placeholder graphics. Start small, grow features iteratively.
 
 ## Quickstart
-```bash
-python -m venv .venv
-source .venv/bin/activate  # on Windows: .venv\\Scripts\\activate
-pip install -r requirements.txt
-python -m src.main
-```
+1. Install [Love2D](https://love2d.org/) (version 11.0+)
+2. Run the game:
+   ```bash
+   love .
+   ```
+   Or drag the Game_0 folder onto the Love2D executable
 
 ## Project Structure
-- `src/core/engine.py` — engine loop + scenes
-- `src/game/scene.py` — main roguelike scene (map, entities, systems)
-- `src/main.py` — entrypoint
+- `main.lua` — Love2D entry point
+- `core/engine.lua` — engine loop + scene management
+- `game/scene.lua` — main roguelike scene (map, entities, systems)
 - `assets/` — placeholder for future art/audio
 
 ## Controls
@@ -22,3 +22,4 @@ python -m src.main
 
 ## Notes
 - Uses colored rectangles for entities/tiles. Replace with sprites later.
+- Built with Love2D for better performance and easier deployment.
