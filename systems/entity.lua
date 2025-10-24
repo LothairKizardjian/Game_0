@@ -96,6 +96,13 @@ function Entity:getRect()
     }
 end
 
+function Entity:collidesWith(other)
+    return self.x < other.x + other.w and
+           self.x + self.w > other.x and
+           self.y < other.y + other.h and
+           self.y + self.h > other.y
+end
+
 function Entity:addXP(amount)
     if not self.isPlayer then return false end
 
