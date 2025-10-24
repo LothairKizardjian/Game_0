@@ -51,7 +51,7 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.facingDirection = {x = 1, y = 0}
         self.speedBurst = 0
         self.speedBurstTime = 0
-        
+
         -- New power system
         self.powers = {}
         self.orbitingBlades = nil

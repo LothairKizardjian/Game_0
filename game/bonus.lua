@@ -9,13 +9,13 @@ Power.__index = Power
 
 function Power.new(id, name, description, rarity, level)
     local self = setmetatable({}, Power)
-    
+
     self.id = id
     self.name = name
     self.description = description
     self.rarity = rarity
     self.level = level or 1
-    
+
     return self
 end
 
@@ -47,14 +47,14 @@ OrbitingBlades.__index = OrbitingBlades
 
 function OrbitingBlades.new(level)
     local self = setmetatable({}, OrbitingBlades)
-    
+
     self.level = level or 1
     self.damage = 2 * self.level
     self.radius = 60
     self.speed = 2.0  -- Rotation speed in radians per second
     self.angle = 0
     self.blades = {}
-    
+
     -- Create 3 blades
     for i = 1, 3 do
         table.insert(self.blades, {
@@ -64,30 +64,30 @@ function OrbitingBlades.new(level)
             size = 8
         })
     end
-    
+
     return self
 end
 
 function OrbitingBlades:update(dt, playerX, playerY, playerW, playerH, enemies)
     self.angle = self.angle + self.speed * dt
-    
+
     local centerX = playerX + playerW / 2
     local centerY = playerY + playerH / 2
-    
+
     -- Update blade positions
     for i, blade in ipairs(self.blades) do
         blade.angle = self.angle + (i - 1) * (2 * math.pi / 3)
         blade.x = centerX + math.cos(blade.angle) * self.radius
         blade.y = centerY + math.sin(blade.angle) * self.radius
     end
-    
+
     -- Check collisions with enemies
     for _, blade in ipairs(self.blades) do
         for _, enemy in ipairs(enemies) do
             local dx = blade.x - (enemy.x + enemy.w/2)
             local dy = blade.y - (enemy.y + enemy.h/2)
             local distance = math.sqrt(dx*dx + dy*dy)
-            
+
             if distance < blade.size + enemy.w/2 then
                 -- Hit enemy
                 enemy:takeDamage(self.damage, love.timer.getTime())
@@ -101,7 +101,7 @@ function OrbitingBlades:render()
         -- Draw blade
         love.graphics.setColor(0.8, 0.2, 0.2)  -- Red blade
         love.graphics.circle('fill', blade.x, blade.y, blade.size)
-        
+
         -- Draw blade outline
         love.graphics.setColor(1, 0.4, 0.4)
         love.graphics.circle('line', blade.x, blade.y, blade.size)
@@ -114,23 +114,23 @@ PowerSelection.__index = PowerSelection
 
 function PowerSelection.new(playerPowers)
     local self = setmetatable({}, PowerSelection)
-    
+
     self.powers = {}
     self.selectedPower = nil
     self.font = nil
     self.titleFont = nil
     self.playerPowers = playerPowers or {}
-    
+
     return self
 end
 
 function PowerSelection:generatePowers(count)
     self.powers = {}
-    
+
     -- For now, only offer Orbiting Blades
     for i = 1, count do
         local powerDef = POWER_DEFINITIONS[1]  -- Only orbiting blades for now
-        
+
         -- Check if player already has this power
         local existingLevel = 1
         for _, existingPower in ipairs(self.playerPowers) do
@@ -139,7 +139,7 @@ function PowerSelection:generatePowers(count)
                 break
             end
         end
-        
+
         table.insert(self.powers, Power.new(powerDef.id, powerDef.name, powerDef.description, powerDef.rarity, existingLevel))
     end
 end

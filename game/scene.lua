@@ -126,8 +126,8 @@ function RogueScene:restartGame()
     -- Find safe spawn position
     self:findSafeSpawnPosition()
 
-    -- Show bonus selection
-    self:showBonusSelection()
+    -- Show power selection
+    self:showPowerSelection()
 end
 
 function RogueScene:keypressed(key)
@@ -309,25 +309,7 @@ function RogueScene:update(dt)
 
     -- Auto-attack system removed
 
-    -- Update magical power cooldowns
-    if self.player.fireballCooldown > 0 then
-        self.player.fireballCooldown = self.player.fireballCooldown - dt
-    end
-    if self.player.iceShardCooldown > 0 then
-        self.player.iceShardCooldown = self.player.iceShardCooldown - dt
-    end
-    if self.player.lightningBoltCooldown > 0 then
-        self.player.lightningBoltCooldown = self.player.lightningBoltCooldown - dt
-    end
-    if self.player.meteorCooldown > 0 then
-        self.player.meteorCooldown = self.player.meteorCooldown - dt
-    end
-    if self.player.arcaneMissileCooldown > 0 then
-        self.player.arcaneMissileCooldown = self.player.arcaneMissileCooldown - dt
-    end
-    if self.player.shadowBoltCooldown > 0 then
-        self.player.shadowBoltCooldown = self.player.shadowBoltCooldown - dt
-    end
+    -- Magical power system removed
 
     -- Update infinite map
     self.infiniteMap:update(self.player.x, self.player.y)
@@ -338,12 +320,11 @@ function RogueScene:update(dt)
     -- Handle passive bonuses
     self:updatePassiveBonuses(dt)
 
-    -- Automatic magical powers
-    self:updateAutomaticPowers(dt)
+    -- Magical power system removed
 
     -- Update animations
     self.animationSystem:update(dt)
-    
+
     -- Update player powers
     self.player:updatePowers(dt, self.enemies)
 
@@ -435,67 +416,6 @@ function RogueScene:addDamageNumber(x, y, damage)
     })
 end
 
-function RogueScene:updateAutomaticPowers(dt)
-    -- Update cooldowns
-    if self.player.fireballCooldown > 0 then
-        self.player.fireballCooldown = self.player.fireballCooldown - dt
-    end
-    if self.player.iceShardCooldown > 0 then
-        self.player.iceShardCooldown = self.player.iceShardCooldown - dt
-    end
-    if self.player.lightningBoltCooldown > 0 then
-        self.player.lightningBoltCooldown = self.player.lightningBoltCooldown - dt
-    end
-    if self.player.meteorCooldown > 0 then
-        self.player.meteorCooldown = self.player.meteorCooldown - dt
-    end
-    if self.player.arcaneMissileCooldown > 0 then
-        self.player.arcaneMissileCooldown = self.player.arcaneMissileCooldown - dt
-    end
-    if self.player.shadowBoltCooldown > 0 then
-        self.player.shadowBoltCooldown = self.player.shadowBoltCooldown - dt
-    end
-
-    -- Cast magical powers
-    if self.player.fireball and self.player.fireballCooldown <= 0 and #self.enemies > 0 then
-        local projectile = self.combatSystem:castFireball(self.player, self.enemies, self.animationSystem)
-        if projectile then
-            table.insert(self.projectiles, projectile)
-        end
-    end
-
-    if self.player.iceShard and self.player.iceShardCooldown <= 0 and #self.enemies > 0 then
-        local projectile = self.combatSystem:castIceShard(self.player, self.enemies, self.animationSystem)
-        if projectile then
-            table.insert(self.projectiles, projectile)
-        end
-    end
-
-    if self.player.lightningBolt and self.player.lightningBoltCooldown <= 0 and #self.enemies > 0 then
-        self.combatSystem:castLightningBolt(self.player, self.enemies, self.animationSystem)
-    end
-
-    if self.player.meteor and self.player.meteorCooldown <= 0 and #self.enemies > 0 then
-        local projectile = self.combatSystem:castMeteor(self.player, self.enemies, self.animationSystem)
-        if projectile then
-            table.insert(self.projectiles, projectile)
-        end
-    end
-
-    if self.player.arcaneMissile and self.player.arcaneMissileCooldown <= 0 and #self.enemies > 0 then
-        local projectile = self.combatSystem:castArcaneMissile(self.player, self.enemies, self.animationSystem)
-        if projectile then
-            table.insert(self.projectiles, projectile)
-        end
-    end
-
-    if self.player.shadowBolt and self.player.shadowBoltCooldown <= 0 and #self.enemies > 0 then
-        local projectile = self.combatSystem:castShadowBolt(self.player, self.enemies, self.animationSystem)
-        if projectile then
-            table.insert(self.projectiles, projectile)
-        end
-    end
-end
 
 function RogueScene:moveEntity(entity, dx, dy)
     -- Move X
@@ -605,7 +525,7 @@ function RogueScene:render()
 
     -- Draw animations
     self.animationSystem:render()
-    
+
     -- Draw player powers
     self.player:renderPowers()
 
@@ -650,61 +570,7 @@ function RogueScene:renderHUD()
 
     -- Auto-attack system removed
 
-    -- Magical Powers
-    local powerY = 138
-    if self.player.fireball then
-        if self.player.fireballCooldown > 0 then
-            love.graphics.print("Fireball: " .. string.format("%.1f", self.player.fireballCooldown) .. "s", 8, powerY)
-        else
-            love.graphics.print("Fireball: Ready (Q)", 8, powerY)
-        end
-        powerY = powerY + 15
-    end
-
-    if self.player.iceShard then
-        if self.player.iceShardCooldown > 0 then
-            love.graphics.print("Ice Shard: " .. string.format("%.1f", self.player.iceShardCooldown) .. "s", 8, powerY)
-        else
-            love.graphics.print("Ice Shard: Ready (E)", 8, powerY)
-        end
-        powerY = powerY + 15
-    end
-
-    if self.player.lightningBolt then
-        if self.player.lightningBoltCooldown > 0 then
-            love.graphics.print("Lightning: " .. string.format("%.1f", self.player.lightningBoltCooldown) .. "s", 8, powerY)
-        else
-            love.graphics.print("Lightning: Ready (R)", 8, powerY)
-        end
-        powerY = powerY + 15
-    end
-
-    if self.player.meteor then
-        if self.player.meteorCooldown > 0 then
-            love.graphics.print("Meteor: " .. string.format("%.1f", self.player.meteorCooldown) .. "s", 8, powerY)
-        else
-            love.graphics.print("Meteor: Ready (T)", 8, powerY)
-        end
-        powerY = powerY + 15
-    end
-
-    if self.player.arcaneMissile then
-        if self.player.arcaneMissileCooldown > 0 then
-            love.graphics.print("Arcane: " .. string.format("%.1f", self.player.arcaneMissileCooldown) .. "s", 8, powerY)
-        else
-            love.graphics.print("Arcane: Ready (F)", 8, powerY)
-        end
-        powerY = powerY + 15
-    end
-
-    if self.player.shadowBolt then
-        if self.player.shadowBoltCooldown > 0 then
-            love.graphics.print("Shadow: " .. string.format("%.1f", self.player.shadowBoltCooldown) .. "s", 8, powerY)
-        else
-            love.graphics.print("Shadow: Ready (G)", 8, powerY)
-        end
-        powerY = powerY + 15
-    end
+    -- Magical power system removed
 
     -- Player health bar in HUD
     local hudBarWidth = 120
