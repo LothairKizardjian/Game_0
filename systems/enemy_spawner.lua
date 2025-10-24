@@ -15,7 +15,7 @@ function EnemySpawner.new()
     return self
 end
 
-function EnemySpawner:update(dt, enemies, player, infiniteMap)
+function EnemySpawner:update(dt, enemies, player, infiniteMap, spriteSystem)
     self.spawnTimer = self.spawnTimer + dt
     local timeElapsed = love.timer.getTime() - self.startTime
 
@@ -30,14 +30,14 @@ function EnemySpawner:update(dt, enemies, player, infiniteMap)
         -- Spawn multiple enemies at once
         for i = 1, enemiesPerSpawn do
             if #enemies < maxEnemies then
-                self:spawnEnemy(enemies, player, infiniteMap)
+                self:spawnEnemy(enemies, player, infiniteMap, spriteSystem)
             end
         end
         self.spawnTimer = 0
     end
 end
 
-function EnemySpawner:spawnEnemy(enemies, player, infiniteMap)
+function EnemySpawner:spawnEnemy(enemies, player, infiniteMap, spriteSystem)
     -- Find a random floor tile away from player
     local attempts = 0
     local x, y
@@ -79,6 +79,12 @@ function EnemySpawner:spawnEnemy(enemies, player, infiniteMap)
         math.floor(3 * scalingFactor),
         scalingFactor
     )
+
+    -- Create individual sprite for this enemy
+    if spriteSystem then
+        spriteSystem:createEnemySprite(enemy.spriteName, "assets/skeleton_walk")
+        enemy:setSpriteSystem(spriteSystem)
+    end
 
     -- Enemy is now a proper Entity with all methods inherited
 

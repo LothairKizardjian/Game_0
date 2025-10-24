@@ -256,7 +256,7 @@ function RogueScene:update(dt)
 
         -- Update facing direction when moving
         self.player:updateFacingDirection(self.moveDir.x, self.moveDir.y)
-        
+
         -- Start animation
         if self.spriteSystem.sprites["player"] then
             self.spriteSystem.sprites["player"].playing = true
@@ -297,10 +297,10 @@ function RogueScene:update(dt)
         if length > 0 then
             local dirX = dx / length
             local dirY = dy / length
-            
+
             -- Update enemy facing direction
             enemy:updateFacingDirection(dirX, dirY)
-            
+
             self:moveEntity(enemy, dirX * enemy.speed * enemySpeedMultiplier * dt, dirY * enemy.speed * enemySpeedMultiplier * dt)
         end
     end
@@ -367,7 +367,7 @@ function RogueScene:update(dt)
     self.infiniteMap:update(self.player.x, self.player.y)
 
     -- Update enemy spawning
-    self.enemySpawner:update(dt, self.enemies, self.player, self.infiniteMap)
+    self.enemySpawner:update(dt, self.enemies, self.player, self.infiniteMap, self.spriteSystem)
 
     -- Handle passive bonuses
     self:updatePassiveBonuses(dt)
@@ -547,8 +547,6 @@ function RogueScene:render()
     self.player:render()
 
     for _, enemy in ipairs(self.enemies) do
-        -- Set sprite system for enemy
-        enemy:setSpriteSystem(self.spriteSystem)
         -- Draw enemy using entity render method
         enemy:render()
     end

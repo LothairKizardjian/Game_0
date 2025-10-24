@@ -15,8 +15,8 @@ function Enemy.new(x, y, w, h, color, speed, hp, scalingFactor)
     self.attackCooldown = 1.0
     self.lastAttackTime = 0
     
-    -- Set enemy sprite name
-    self.spriteName = "enemy"
+    -- Generate unique sprite name for each enemy
+    self.spriteName = "enemy_" .. tostring(self):sub(-8)  -- Use object address as unique ID
     
     return self
 end

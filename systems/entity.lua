@@ -18,7 +18,7 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
     self.damageCooldown = 0
     self.lastDamageTime = 0
     self.facingDirection = {x = 0, y = 1}  -- Default facing south
-    
+
     -- Sprite properties
     self.spriteName = nil
     self.spriteSystem = nil
@@ -55,7 +55,7 @@ function Entity.new(x, y, w, h, color, speed, hp, isPlayer)
         self.teleport = false
         self.speedBurst = 0
         self.speedBurstTime = 0
-        
+
         -- New power system
         self.powers = {}
         self.orbitingBlades = nil
@@ -88,7 +88,7 @@ function Entity:render()
         else
             self.spriteSystem:setEnemyDirection(self.spriteName, self.facingDirection)
         end
-        
+
         -- Reset color and render sprite
         love.graphics.setColor(1, 1, 1, 1)
         self.spriteSystem:render(self.spriteName, self.x + self.w/2, self.y + self.h/2)
