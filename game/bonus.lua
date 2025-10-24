@@ -44,7 +44,7 @@ local BONUS_DEFINITIONS = {
     {id = "god_mode", name = "Divine Wrath", description = "Deal 5 damage to all enemies every 2 seconds", rarity = "godly", effect = "god_mode", value = 5},
     {id = "xp_rain", name = "Divine Blessing", description = "Gain 1 XP every second", rarity = "godly", effect = "xp_rain", value = 1},
     {id = "teleport", name = "Divine Movement", description = "Teleport to random location every 5 seconds", rarity = "godly", effect = "teleport", value = 5},
-    
+
     -- New Offensive Bonuses
     {id = "attack_damage", name = "Power Strike", description = "+1 Attack Damage", rarity = "common", effect = "auto_attack_damage", value = 1},
     {id = "attack_range", name = "Long Reach", description = "+20% Attack Range", rarity = "common", effect = "auto_attack_range", value = 0.2},
@@ -112,8 +112,29 @@ function BonusSelection:generateBonuses(count, playerBonuses)
 
     -- Select random bonuses
     for i = 1, count do
-        local randomIndex = math.random(1, #weightedBonuses)
-        local bonusDef = weightedBonuses[randomIndex]
+        local attempts = 0
+        local bonusDef = nil
+        local randomIndex = nil
+        
+        -- Keep trying until we find a unique bonus
+        repeat
+            randomIndex = math.random(1, #weightedBonuses)
+            bonusDef = weightedBonuses[randomIndex]
+            attempts = attempts + 1
+            
+            -- Check if this bonus is already selected
+            local isDuplicate = false
+            for _, existingBonus in ipairs(self.bonuses) do
+                if existingBonus.id == bonusDef.id then
+                    isDuplicate = true
+                    break
+                end
+            end
+            
+            if not isDuplicate or attempts > 50 then  -- Give up after 50 attempts
+                break
+            end
+        until false
         
         -- Check if player already has this bonus
         local existingLevel = 1
