@@ -12,11 +12,11 @@ local COLOR_BUTTON_HOVER = {100/255, 220/255, 140/255}
 
 function GameOverScene.new(finalLevel, finalXP, enemiesKilled)
     local self = setmetatable({}, GameOverScene)
-    
+
     self.finalLevel = finalLevel or 1
     self.finalXP = finalXP or 0
     self.enemiesKilled = enemiesKilled or 0
-    
+
     self.buttons = {
         {
             text = "New Game",
@@ -35,11 +35,11 @@ function GameOverScene.new(finalLevel, finalXP, enemiesKilled)
             action = "exit"
         }
     }
-    
+
     self.hoveredButton = nil
     self.font = nil
     self.titleFont = nil
-    
+
     return self
 end
 
@@ -68,7 +68,7 @@ end
 
 function GameOverScene:update(dt)
     local mx, my = love.mouse.getPosition()
-    
+
     -- Check button hover
     self.hoveredButton = nil
     for _, button in ipairs(self.buttons) do
@@ -82,33 +82,33 @@ end
 
 function GameOverScene:render()
     love.graphics.clear(COLOR_BG[1], COLOR_BG[2], COLOR_BG[3])
-    
+
     -- Title
     love.graphics.setFont(self.titleFont)
     love.graphics.setColor(1, 0.2, 0.2, 1)
     love.graphics.printf("GAME OVER", 0, 100, 800, 'center')
-    
+
     -- Stats
     love.graphics.setFont(self.font)
     love.graphics.setColor(COLOR_UI[1], COLOR_UI[2], COLOR_UI[3])
     love.graphics.printf("Final Level: " .. self.finalLevel, 0, 180, 800, 'center')
     love.graphics.printf("Experience: " .. self.finalXP, 0, 210, 800, 'center')
     love.graphics.printf("Enemies Defeated: " .. self.enemiesKilled, 0, 240, 800, 'center')
-    
+
     -- Buttons
     for _, button in ipairs(self.buttons) do
         local color = COLOR_BUTTON
         if button == self.hoveredButton then
             color = COLOR_BUTTON_HOVER
         end
-        
+
         love.graphics.setColor(color[1], color[2], color[3])
         love.graphics.rectangle('fill', button.x, button.y, button.width, button.height)
-        
+
         love.graphics.setColor(0, 0, 0)
         love.graphics.printf(button.text, button.x, button.y + 15, button.width, 'center')
     end
-    
+
     -- Instructions
     love.graphics.setColor(COLOR_UI[1], COLOR_UI[2], COLOR_UI[3])
     love.graphics.printf("Click a button or use ENTER/SPACE", 0, 450, 800, 'center')
