@@ -3,23 +3,37 @@
 
 local Engine = require('core.engine')
 local RogueScene = require('game.scene')
+local Config = require('systems.config')
+local Performance = require('systems.performance')
+
+-- Initialize performance monitoring
+local performance = Performance.new()
 
 function love.load()
-    -- Set window properties
-    love.window.setTitle("Game_0")
-    love.window.setMode(800, 576) -- Fixed screen size for larger world
-
+    -- Initialize configuration
+    Config.init()
+    
     -- Initialize the engine
     Engine.init()
     Engine.pushScene(RogueScene.new())
 end
 
 function love.update(dt)
-    Engine.update(dt)
+    -- Update performance monitoring
+    performance:update(dt)
+    
+    -- Smooth delta time for better physics
+    local smoothedDt = performance:getSmoothedDeltaTime()
+    Engine.update(smoothedDt)
 end
 
 function love.draw()
     Engine.draw()
+    
+    -- Render performance info if enabled
+    if Config.get('RENDERING', 'SHOW_FPS', false) then
+        performance:render()
+    end
 end
 
 function love.keypressed(key)
