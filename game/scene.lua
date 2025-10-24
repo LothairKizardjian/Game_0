@@ -14,6 +14,7 @@ local EnemySpawner = require('systems.enemy_spawner')
 local PowerSystem = require('game.bonus')
 local XPShardSystem = require('game.xp_shard')
 local GameOverScene = require('game.gameover')
+local SpriteSystem = require('systems.sprite')
 
 -- Constants
 local TILE = 32
@@ -36,6 +37,10 @@ function RogueScene.new()
     self.animationSystem = AnimationSystem.new()
     self.combatSystem = CombatSystem.new()
     self.enemySpawner = EnemySpawner.new()
+    self.spriteSystem = SpriteSystem.new()
+    
+    -- Load player sprite
+    self:loadPlayerSprite()
 
     -- Game state
     self.player = Entity.new(0, 0, TILE - 12, TILE - 12, COLOR_PLAYER, 150, 10, true)
@@ -59,6 +64,16 @@ function RogueScene.new()
     self:showPowerSelection()
 
     return self
+end
+
+function RogueScene:loadPlayerSprite()
+    -- Load the knight rotation sprite
+    local knightSprite = self.spriteSystem:loadSprite("knight", "assets/Knight_rotations_8dir.gif")
+    if knightSprite then
+        -- Create animated sprite with 8 frames (8 directions)
+        -- Assuming each frame is 32x32 pixels
+        self.spriteSystem:createAnimatedSprite("player", knightSprite, 32, 32, 8, 0.2)
+    end
 end
 
 function RogueScene:onEnter()
@@ -219,6 +234,9 @@ function RogueScene:update(dt)
         -- Update facing direction when moving
         self.player.facingDirection.x = self.moveDir.x
         self.player.facingDirection.y = self.moveDir.y
+        
+        -- Update sprite direction
+        self.spriteSystem:setDirection("player", self.player.facingDirection)
     else
         self.moveDir.x = 0
         self.moveDir.y = 0
@@ -327,6 +345,9 @@ function RogueScene:update(dt)
 
     -- Update player powers
     self.player:updatePowers(dt, self.enemies)
+    
+    -- Update sprite system
+    self.spriteSystem:update(dt)
 
     -- Update XP shards
     local collectedXP = self.xpShardManager:update(dt, self.player.x + self.player.w/2, self.player.y + self.player.h/2,
@@ -488,8 +509,8 @@ function RogueScene:render()
     self.xpShardManager:render()
 
     -- Draw entities
-    love.graphics.setColor(COLOR_PLAYER[1], COLOR_PLAYER[2], COLOR_PLAYER[3])
-    love.graphics.rectangle('fill', self.player.x, self.player.y, self.player.w, self.player.h)
+    -- Draw player sprite
+    self.spriteSystem:render("player", self.player.x + self.player.w/2, self.player.y + self.player.h/2)
 
     for _, enemy in ipairs(self.enemies) do
         love.graphics.setColor(COLOR_ENEMY[1], COLOR_ENEMY[2], COLOR_ENEMY[3])
