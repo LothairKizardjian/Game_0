@@ -1,234 +1,221 @@
--- Bonus System for Game_0
--- Handles bonuses with different rarities and effects
+-- Object-Oriented Power System for Game_0
+-- Clean, modular power system with leveling
 
-local Bonus = {}
-Bonus.__index = Bonus
+local PowerSystem = {}
 
--- Rarity definitions
-local RARITIES = {
-    common = {name = "Common", color = {0.7, 0.7, 0.7}, weight = 50},
-    rare = {name = "Rare", color = {0.2, 0.6, 1.0}, weight = 25},
-    epic = {name = "Epic", color = {0.6, 0.2, 1.0}, weight = 15},
-    legendary = {name = "Legendary", color = {1.0, 0.6, 0.0}, weight = 8},
-    godly = {name = "Godly", color = {1.0, 0.2, 0.2}, weight = 2}
-}
+-- Power base class
+local Power = {}
+Power.__index = Power
 
--- Bonus definitions
-local BONUS_DEFINITIONS = {
-    -- Common bonuses
-    {id = "health_boost", name = "Vitality", description = "+2 Max Health", rarity = "common", effect = "max_health", value = 2},
-    {id = "speed_boost", name = "Swiftness", description = "+20% Movement Speed", rarity = "common", effect = "speed_mult", value = 0.2},
-    {id = "damage_reduction", name = "Toughness", description = "+1 Damage Reduction", rarity = "common", effect = "damage_reduction", value = 1},
-    {id = "xp_boost", name = "Wisdom", description = "+25% XP Gain", rarity = "common", effect = "xp_mult", value = 0.25},
-
-    -- Rare bonuses
-    {id = "health_regen", name = "Regeneration", description = "Heal 1 HP every 3 seconds", rarity = "rare", effect = "health_regen", value = 1},
-    {id = "collect_radius", name = "Magnetism", description = "+50% Collect Radius", rarity = "rare", effect = "collect_radius_mult", value = 0.5},
-    {id = "crit_chance", name = "Precision", description = "10% Chance to deal 2x damage", rarity = "rare", effect = "crit_chance", value = 0.1},
-    {id = "enemy_slow", name = "Chill", description = "Enemies move 20% slower", rarity = "rare", effect = "enemy_slow", value = 0.2},
-
-    -- Epic bonuses
-    {id = "double_xp", name = "Scholar", description = "Double XP from enemies", rarity = "epic", effect = "xp_mult", value = 1.0},
-    {id = "damage_immunity", name = "Fortress", description = "Immune to damage for 2s after taking damage", rarity = "epic", effect = "damage_immunity", value = 2.0},
-    {id = "enemy_damage", name = "Thorns", description = "Deal 1 damage to enemies that touch you", rarity = "epic", effect = "thorns", value = 1},
-    {id = "speed_burst", name = "Dash", description = "Gain 50% speed for 1s after killing enemy", rarity = "epic", effect = "speed_burst", value = 0.5},
-
-    -- Legendary bonuses
-    {id = "life_steal", name = "Vampirism", description = "Heal 1 HP for each enemy killed", rarity = "legendary", effect = "life_steal", value = 1},
-    {id = "explosive_death", name = "Detonation", description = "Enemies explode on death, dealing 2 damage", rarity = "legendary", effect = "explosive_death", value = 2},
-    {id = "time_slow", name = "Chronos", description = "Time moves 30% slower", rarity = "legendary", effect = "time_slow", value = 0.3},
-    {id = "xp_magnet", name = "Attraction", description = "XP shards move 3x faster to you", rarity = "legendary", effect = "xp_magnet", value = 3.0},
-
-    -- Godly bonuses
-    {id = "immortality", name = "Divine Protection", description = "Cannot die while above 1 HP", rarity = "godly", effect = "immortality", value = 1},
-    {id = "god_mode", name = "Divine Wrath", description = "Deal 5 damage to all enemies every 2 seconds", rarity = "godly", effect = "god_mode", value = 5},
-    {id = "xp_rain", name = "Divine Blessing", description = "Gain 1 XP every second", rarity = "godly", effect = "xp_rain", value = 1},
-    {id = "teleport", name = "Divine Movement", description = "Teleport to random location every 5 seconds", rarity = "godly", effect = "teleport", value = 5},
-
-    -- Offensive Bonuses removed - auto attack system disabled
-    {id = "multi_strike", name = "Double Strike", description = "Attack twice per use", rarity = "epic", effect = "multi_strike", value = 1},
-    {id = "chain_lightning", name = "Chain Lightning", description = "Attack chains to nearby enemies", rarity = "legendary", effect = "chain_lightning", value = 3},
-    {id = "explosive_attack", name = "Explosive Strike", description = "Attack creates explosion on impact", rarity = "legendary", effect = "explosive_attack", value = 2},
-
-    -- Magical Powers
-    {id = "fireball", name = "Fireball", description = "Automatically cast fireballs at enemies", rarity = "common", effect = "fireball", value = 1},
-    {id = "ice_shard", name = "Ice Shard", description = "Automatically cast ice shards that slow enemies", rarity = "rare", effect = "ice_shard", value = 1},
-    {id = "lightning_bolt", name = "Lightning Bolt", description = "Automatically cast lightning that chains between enemies", rarity = "epic", effect = "lightning_bolt", value = 1},
-    {id = "meteor", name = "Meteor", description = "Automatically summon meteors from the sky", rarity = "legendary", effect = "meteor", value = 1},
-    {id = "arcane_missile", name = "Arcane Missile", description = "Automatically fire rapid magical projectiles", rarity = "rare", effect = "arcane_missile", value = 1},
-    {id = "shadow_bolt", name = "Shadow Bolt", description = "Automatically cast dark energy that pierces through enemies", rarity = "epic", effect = "shadow_bolt", value = 1}
-}
-
-function Bonus.new(definition, level)
-    local self = setmetatable({}, Bonus)
-    self.id = definition.id
-    self.name = definition.name
-    self.description = definition.description
-    self.rarity = definition.rarity
-    self.effect = definition.effect
-    self.value = definition.value
+function Power.new(id, name, description, rarity, level)
+    local self = setmetatable({}, Power)
+    
+    self.id = id
+    self.name = name
+    self.description = description
+    self.rarity = rarity
     self.level = level or 1
-    self.color = RARITIES[definition.rarity].color
+    
     return self
 end
 
-function Bonus:getRarityColor()
-    return RARITIES[self.rarity].color
+function Power:getDisplayName()
+    return self.name .. " (Level " .. self.level .. ")"
 end
 
-function Bonus:getScaledValue()
-    -- Scale value based on level (linear scaling)
-    return self.value * self.level
+function Power:getScaledValue(baseValue)
+    return baseValue * self.level
 end
 
-function Bonus:getDisplayName()
-    if self.level > 1 then
-        return self.name .. " (Lv." .. self.level .. ")"
+-- Rarity colors
+local RARITY_COLORS = {
+    common = {0.7, 0.7, 0.7},
+    rare = {0.2, 0.6, 1.0},
+    epic = {0.6, 0.2, 1.0},
+    legendary = {1.0, 0.6, 0.0},
+    godly = {1.0, 1.0, 1.0}
+}
+
+-- Power definitions - Only Orbiting Blades for now
+local POWER_DEFINITIONS = {
+    {id = "orbiting_blades", name = "Orbiting Blades", description = "3 blades orbit around you, dealing damage on contact", rarity = "rare", baseDamage = 2, baseRadius = 60}
+}
+
+-- Orbiting Blades Power Implementation
+local OrbitingBlades = {}
+OrbitingBlades.__index = OrbitingBlades
+
+function OrbitingBlades.new(level)
+    local self = setmetatable({}, OrbitingBlades)
+    
+    self.level = level or 1
+    self.damage = 2 * self.level
+    self.radius = 60
+    self.speed = 2.0  -- Rotation speed in radians per second
+    self.angle = 0
+    self.blades = {}
+    
+    -- Create 3 blades
+    for i = 1, 3 do
+        table.insert(self.blades, {
+            angle = (i - 1) * (2 * math.pi / 3),  -- 120 degrees apart
+            x = 0,
+            y = 0,
+            size = 8
+        })
     end
-    return self.name
+    
+    return self
 end
 
--- Bonus selection system
-local BonusSelection = {}
-BonusSelection.__index = BonusSelection
+function OrbitingBlades:update(dt, playerX, playerY, playerW, playerH, enemies)
+    self.angle = self.angle + self.speed * dt
+    
+    local centerX = playerX + playerW / 2
+    local centerY = playerY + playerH / 2
+    
+    -- Update blade positions
+    for i, blade in ipairs(self.blades) do
+        blade.angle = self.angle + (i - 1) * (2 * math.pi / 3)
+        blade.x = centerX + math.cos(blade.angle) * self.radius
+        blade.y = centerY + math.sin(blade.angle) * self.radius
+    end
+    
+    -- Check collisions with enemies
+    for _, blade in ipairs(self.blades) do
+        for _, enemy in ipairs(enemies) do
+            local dx = blade.x - (enemy.x + enemy.w/2)
+            local dy = blade.y - (enemy.y + enemy.h/2)
+            local distance = math.sqrt(dx*dx + dy*dy)
+            
+            if distance < blade.size + enemy.w/2 then
+                -- Hit enemy
+                enemy:takeDamage(self.damage, love.timer.getTime())
+            end
+        end
+    end
+end
 
-function BonusSelection.new()
-    local self = setmetatable({}, BonusSelection)
-    self.bonuses = {}
-    self.selectedBonus = nil
+function OrbitingBlades:render()
+    for _, blade in ipairs(self.blades) do
+        -- Draw blade
+        love.graphics.setColor(0.8, 0.2, 0.2)  -- Red blade
+        love.graphics.circle('fill', blade.x, blade.y, blade.size)
+        
+        -- Draw blade outline
+        love.graphics.setColor(1, 0.4, 0.4)
+        love.graphics.circle('line', blade.x, blade.y, blade.size)
+    end
+end
+
+-- Power Selection System
+local PowerSelection = {}
+PowerSelection.__index = PowerSelection
+
+function PowerSelection.new(playerPowers)
+    local self = setmetatable({}, PowerSelection)
+    
+    self.powers = {}
+    self.selectedPower = nil
     self.font = nil
     self.titleFont = nil
+    self.playerPowers = playerPowers or {}
+    
     return self
 end
 
-function BonusSelection:generateBonuses(count, playerBonuses)
-    self.bonuses = {}
-
-    -- Create weighted list of all bonuses
-    local weightedBonuses = {}
-    for _, bonusDef in ipairs(BONUS_DEFINITIONS) do
-        local weight = RARITIES[bonusDef.rarity].weight
-        for _ = 1, weight do
-            table.insert(weightedBonuses, bonusDef)
-        end
-    end
-
-    -- Select random bonuses
+function PowerSelection:generatePowers(count)
+    self.powers = {}
+    
+    -- For now, only offer Orbiting Blades
     for i = 1, count do
-        local attempts = 0
-        local bonusDef = nil
-        local randomIndex = nil
-
-        -- Keep trying until we find a unique bonus
-        repeat
-            randomIndex = math.random(1, #weightedBonuses)
-            bonusDef = weightedBonuses[randomIndex]
-            attempts = attempts + 1
-
-            -- Check if this bonus is already selected
-            local isDuplicate = false
-            for _, existingBonus in ipairs(self.bonuses) do
-                if existingBonus.id == bonusDef.id then
-                    isDuplicate = true
-                    break
-                end
-            end
-
-            if not isDuplicate or attempts > 50 then  -- Give up after 50 attempts
+        local powerDef = POWER_DEFINITIONS[1]  -- Only orbiting blades for now
+        
+        -- Check if player already has this power
+        local existingLevel = 1
+        for _, existingPower in ipairs(self.playerPowers) do
+            if existingPower.id == powerDef.id then
+                existingLevel = existingPower.level + 1
                 break
             end
-        until false
-
-        -- Check if player already has this bonus
-        local existingLevel = 1
-        if playerBonuses then
-            for _, existingBonus in ipairs(playerBonuses) do
-                if existingBonus.id == bonusDef.id then
-                    existingLevel = existingBonus.level + 1
-                    break
-                end
-            end
         end
-
-        table.insert(self.bonuses, Bonus.new(bonusDef, existingLevel))
-
-        -- Remove this bonus from the pool to avoid duplicates
-        table.remove(weightedBonuses, randomIndex)
+        
+        table.insert(self.powers, Power.new(powerDef.id, powerDef.name, powerDef.description, powerDef.rarity, existingLevel))
     end
 end
 
-function BonusSelection:onEnter()
+function PowerSelection:onEnter()
     self.font = love.graphics.newFont(16)
     self.titleFont = love.graphics.newFont(24)
 end
 
-function BonusSelection:update(dt)
-    -- Bonus selection doesn't need update logic
+function PowerSelection:update(dt)
+    -- Power selection doesn't need update logic
 end
 
-function BonusSelection:keypressed(key)
-    -- Keep keyboard support as backup
+function PowerSelection:keypressed(key)
     if key == '1' then
-        self.selectedBonus = self.bonuses[1]
+        self.selectedPower = self.powers[1]
     elseif key == '2' then
-        self.selectedBonus = self.bonuses[2]
+        self.selectedPower = self.powers[2]
     elseif key == '3' then
-        self.selectedBonus = self.bonuses[3]
+        self.selectedPower = self.powers[3]
     end
 end
 
-function BonusSelection:mousepressed(x, y, button)
+function PowerSelection:mousepressed(x, y, button)
     if button == 1 then -- Left mouse button
-        -- Check which bonus was clicked
-        for i, bonus in ipairs(self.bonuses) do
-            local bonusX = 50 + (i - 1) * 250
-            local bonusY = 150
+        -- Check which power was clicked
+        for i, power in ipairs(self.powers) do
+            local powerX = 50 + (i - 1) * 250
+            local powerY = 150
 
-            if x >= bonusX and x <= bonusX + 200 and y >= bonusY and y <= bonusY + 300 then
-                self.selectedBonus = bonus
+            if x >= powerX and x <= powerX + 200 and y >= powerY and y <= powerY + 300 then
+                self.selectedPower = power
                 break
             end
         end
     end
 end
 
-function BonusSelection:render()
+function PowerSelection:render()
     love.graphics.clear(0.1, 0.1, 0.15)
 
     -- Title
     love.graphics.setFont(self.titleFont)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.printf("Choose a Bonus", 0, 50, 800, 'center')
+    love.graphics.printf("Choose a Power", 0, 50, 800, 'center')
 
     -- Instructions
     love.graphics.setFont(self.font)
     love.graphics.setColor(0.8, 0.8, 0.8)
-    love.graphics.printf("Click a bonus to select, or press 1, 2, or 3", 0, 100, 800, 'center')
+    love.graphics.printf("Click a power to select, or press 1, 2, or 3", 0, 100, 800, 'center')
 
-    -- Display bonuses
-    for i, bonus in ipairs(self.bonuses) do
+    -- Display powers
+    for i, power in ipairs(self.powers) do
         local x = 50 + (i - 1) * 250
         local y = 150
 
-        -- Bonus box
+        -- Power box
         love.graphics.setColor(0.2, 0.2, 0.3)
         love.graphics.rectangle('fill', x, y, 200, 300)
 
         -- Rarity border
-        love.graphics.setColor(bonus.color[1], bonus.color[2], bonus.color[3])
+        local color = RARITY_COLORS[power.rarity]
+        love.graphics.setColor(color[1], color[2], color[3])
         love.graphics.rectangle('line', x, y, 200, 300)
 
-        -- Bonus name with level
+        -- Power name with level
         love.graphics.setColor(1, 1, 1)
-        love.graphics.printf(bonus:getDisplayName(), x, y + 20, 200, 'center')
+        love.graphics.printf(power:getDisplayName(), x, y + 20, 200, 'center')
 
         -- Rarity
-        love.graphics.setColor(bonus.color[1], bonus.color[2], bonus.color[3])
-        love.graphics.printf(RARITIES[bonus.rarity].name, x, y + 50, 200, 'center')
+        love.graphics.setColor(color[1], color[2], color[3])
+        love.graphics.printf(power.rarity:upper(), x, y + 50, 200, 'center')
 
         -- Description
         love.graphics.setColor(0.8, 0.8, 0.8)
-        love.graphics.printf(bonus.description, x + 10, y + 80, 180, 'center')
+        love.graphics.printf(power.description, x + 10, y + 80, 180, 'center')
 
         -- Key indicator
         love.graphics.setColor(1, 1, 0)
@@ -237,8 +224,9 @@ function BonusSelection:render()
 end
 
 return {
-    Bonus = Bonus,
-    BonusSelection = BonusSelection,
-    BONUS_DEFINITIONS = BONUS_DEFINITIONS,
-    RARITIES = RARITIES
+    Power = Power,
+    PowerSelection = PowerSelection,
+    OrbitingBlades = OrbitingBlades,
+    POWER_DEFINITIONS = POWER_DEFINITIONS,
+    RARITY_COLORS = RARITY_COLORS
 }

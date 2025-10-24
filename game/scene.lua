@@ -11,7 +11,7 @@ local Camera = require('systems.camera')
 local AnimationSystem = require('systems.animation')
 local CombatSystem = require('systems.combat')
 local EnemySpawner = require('systems.enemy_spawner')
-local BonusSystem = require('game.bonus')
+local PowerSystem = require('game.bonus')
 local XPShardSystem = require('game.xp_shard')
 local GameOverScene = require('game.gameover')
 
@@ -48,15 +48,15 @@ function RogueScene.new()
     -- Ensure player spawns in a safe area
     self:findSafeSpawnPosition()
 
-    -- XP and bonus systems
+    -- XP and power systems
     self.xpShardManager = XPShardSystem.XPShardManager.new()
-    self.bonusSelection = nil
-    self.showingBonusSelection = false
+    self.powerSelection = nil
+    self.showingPowerSelection = false
     self.gameOver = false
     self.gameOverScene = nil
 
-    -- Initialize bonus selection at start
-    self:showBonusSelection()
+    -- Initialize power selection at start
+    self:showPowerSelection()
 
     return self
 end
@@ -69,17 +69,17 @@ function RogueScene:onExit()
     -- Cleanup any scene-specific resources
 end
 
-function RogueScene:showBonusSelection()
-    self.bonusSelection = BonusSystem.BonusSelection.new()
-    self.bonusSelection:generateBonuses(3, self.player.bonuses)
-    self.bonusSelection:onEnter()
-    self.showingBonusSelection = true
+function RogueScene:showPowerSelection()
+    self.powerSelection = PowerSystem.PowerSelection.new(self.player.powers)
+    self.powerSelection:generatePowers(3)
+    self.powerSelection:onEnter()
+    self.showingPowerSelection = true
 end
 
-function RogueScene:selectBonus(bonus)
-    self.player:applyBonus(bonus)
-    self.showingBonusSelection = false
-    self.bonusSelection = nil
+function RogueScene:selectPower(power)
+    self.player:applyPower(power)
+    self.showingPowerSelection = false
+    self.powerSelection = nil
 end
 
 function RogueScene:findSafeSpawnPosition()
@@ -131,22 +131,19 @@ function RogueScene:restartGame()
 end
 
 function RogueScene:keypressed(key)
-    -- Handle bonus selection
-    if self.showingBonusSelection then
+    -- Handle power selection
+    if self.showingPowerSelection then
         if key == '1' then
-            self:selectBonus(self.bonusSelection.bonuses[1])
+            self:selectPower(self.powerSelection.powers[1])
         elseif key == '2' then
-            self:selectBonus(self.bonusSelection.bonuses[2])
+            self:selectPower(self.powerSelection.powers[2])
         elseif key == '3' then
-            self:selectBonus(self.bonusSelection.bonuses[3])
+            self:selectPower(self.powerSelection.powers[3])
         end
         return
     end
 
-    -- Auto-attack
-    if key == 'space' then
-        self.combatSystem:performAutoAttack(self.player, self.enemies, self.animationSystem)
-    end
+    -- Auto-attack system removed
 
     -- Zoom controls
     if key == '=' or key == '+' then
@@ -175,11 +172,11 @@ function RogueScene:mousepressed(x, y, button)
         return
     end
 
-    -- Handle bonus selection mouse clicks
-    if self.showingBonusSelection then
-        self.bonusSelection:mousepressed(x, y, button)
-        if self.bonusSelection.selectedBonus then
-            self:selectBonus(self.bonusSelection.selectedBonus)
+    -- Handle power selection mouse clicks
+    if self.showingPowerSelection then
+        self.powerSelection:mousepressed(x, y, button)
+        if self.powerSelection.selectedPower then
+            self:selectPower(self.powerSelection.selectedPower)
         end
         return
     end
@@ -190,8 +187,8 @@ function RogueScene:mousereleased(x, y, button)
 end
 
 function RogueScene:update(dt)
-    -- Handle bonus selection screen
-    if self.showingBonusSelection then
+    -- Handle power selection screen
+    if self.showingPowerSelection then
         return
     end
 
@@ -346,6 +343,9 @@ function RogueScene:update(dt)
 
     -- Update animations
     self.animationSystem:update(dt)
+    
+    -- Update player powers
+    self.player:updatePowers(dt, self.enemies)
 
     -- Update XP shards
     local collectedXP = self.xpShardManager:update(dt, self.player.x + self.player.w/2, self.player.y + self.player.h/2,
@@ -358,7 +358,7 @@ function RogueScene:update(dt)
         -- Check for level up
         while self.player.xp >= self.player.xpToNext do
             self.player:levelUp()
-            self:showBonusSelection()
+            self:showPowerSelection()
         end
     end
 
@@ -546,9 +546,9 @@ end
 function RogueScene:render()
     love.graphics.clear(COLOR_BG[1], COLOR_BG[2], COLOR_BG[3])
 
-    -- Handle bonus selection screen
-    if self.showingBonusSelection then
-        self.bonusSelection:render()
+    -- Handle power selection screen
+    if self.showingPowerSelection then
+        self.powerSelection:render()
         return
     end
 
@@ -605,6 +605,9 @@ function RogueScene:render()
 
     -- Draw animations
     self.animationSystem:render()
+    
+    -- Draw player powers
+    self.player:renderPowers()
 
     -- Reset transformation for HUD
     self.camera:reset()
