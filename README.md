@@ -17,22 +17,29 @@ A small, modular roguelike foundation using Love2D (Lua) with simple placeholder
 - `assets/` — placeholder for future art/audio
 
 ## Controls
-- Move: WASD or Arrow Keys
-- Zoom In: + or = key
-- Zoom Out: - key
-- Reset Zoom: 0 key
-- Quit: Esc or close window
+- **Movement**: WASD or Arrow Keys
+- **Zoom**: +/= to zoom in, - to zoom out, 0 to reset
+- **Bonus Selection**: Press 1, 2, or 3 to choose bonuses
+- **Game Over**: Click buttons or use ENTER/SPACE
+- **Quit**: Esc or close window
+
+## Bonus System
+- **5 Rarity Tiers**: Common (gray) → Rare (blue) → Epic (purple) → Legendary (gold) → Godly (red)
+- **20+ Unique Effects**: From simple stat boosts to game-changing abilities
+- **Selection**: Choose 1 of 3 random bonuses at game start and each level up
+- **Creative Effects**: Health regen, XP rain, god mode, time slow, teleportation, and more!
 
 ## Features
-- **Large Procedural World**: 50x35 tile map with room-based generation
-- **Camera System**: Smooth camera following with zoom (0.5x to 4.0x)
-- **Player Movement**: WASD/Arrow key controls with collision detection
-- **Combat System**: Enemies deal damage with cooldown system (1s player, 0.5s enemies)
-- **Health System**: Player (10 HP) and enemies (3 HP) with visual health bars
-- **Dynamic HUD**: Health display, zoom level, map size, and enemy count
-- **Room Generation**: Procedural rooms connected by corridors
-- **Visual Feedback**: Color-coded health bars (green/yellow/red)
-- **Improved Movement**: Smaller player for easier navigation
+- **🎮 Complete Roguelike Experience**: Game over screen, restart functionality, and progression
+- **📈 Leveling System**: Player levels up with XP from enemy kills, exponential progression
+- **🎁 Bonus System**: 20+ unique bonuses across 5 rarity tiers (Common to Godly)
+- **💎 XP Shards**: Visual experience drops that move toward player with collect radius
+- **⚔️ Enhanced Combat**: Damage reduction, thorns, life steal, explosive death effects
+- **🌟 Creative Bonuses**: Health regen, XP rain, god mode, time slow, teleportation
+- **🎯 Visual Polish**: Glowing XP shards, collect radius display, bonus tracking
+- **🏗️ Large Procedural World**: 50x35 tile map with room-based generation
+- **📷 Camera System**: Smooth following with zoom (0.5x to 4.0x) and boundaries
+- **🎨 Dynamic HUD**: Level, XP, bonuses, health, and comprehensive stat display
 
 ## Notes
 - Uses colored rectangles for entities/tiles. Replace with sprites later.

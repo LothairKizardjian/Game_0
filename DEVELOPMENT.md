@@ -31,6 +31,13 @@ Game_0 is a lightweight, modular roguelike foundation using Love2D (Lua) with si
 - `assets/` — sprites/sfx (placeholder for now)
 
 ## Recent Updates
+- **🎮 COMPLETE ROGUELIKE SYSTEM**: Game over screen, restart functionality, progression tracking
+- **📈 LEVELING SYSTEM**: Player levels with XP from enemies, exponential progression, bonus selection
+- **🎁 BONUS SYSTEM**: 20+ unique bonuses across 5 rarity tiers with creative effects
+- **💎 XP SHARDS**: Visual experience drops that move toward player with collect radius
+- **⚔️ ENHANCED COMBAT**: Damage reduction, thorns, life steal, explosive death, critical hits
+- **🌟 CREATIVE EFFECTS**: Health regen, XP rain, god mode, time slow, teleportation
+- **🎯 VISUAL POLISH**: Glowing XP shards, collect radius, bonus tracking, enhanced HUD
 - **Combat System**: Implemented damage dealing with cooldown system
 - **Health Bars**: Visual health bars for player and enemies with color coding
 - **Enhanced Combat**: Player (10 HP) and enemies (3 HP) with damage cooldowns
