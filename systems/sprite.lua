@@ -43,7 +43,7 @@ function SpriteSystem:createDirectionalSprite(name, basePath)
         playing = true,
         loop = true
     }
-
+    
     -- Load sprites for each direction
     local directions = {"north", "east", "south", "west"}
     for _, dir in ipairs(directions) do
@@ -53,9 +53,37 @@ function SpriteSystem:createDirectionalSprite(name, basePath)
             directionalSprite.sprites[dir] = sprite
         end
     end
-
+    
     self.sprites[name] = directionalSprite
     return directionalSprite
+end
+
+function SpriteSystem:createEnemySprite(name, basePath)
+    local enemySprite = {
+        sprites = {},
+        currentDirection = "south",  -- Default direction
+        frameWidth = 64,  -- Correct size: 64x64 pixels
+        frameHeight = 64,
+        frameCount = 4,  -- Assuming 4 frames per direction
+        frameDuration = 0.2,  -- Slightly slower animation for enemies
+        currentFrame = 1,
+        frameTime = 0,
+        playing = true,
+        loop = true
+    }
+    
+    -- Load sprites for each direction
+    local directions = {"north", "east", "south", "west"}
+    for _, dir in ipairs(directions) do
+        local path = basePath .. "_" .. dir .. ".png"
+        local sprite = self:loadSprite(name .. "_" .. dir, path)
+        if sprite then
+            enemySprite.sprites[dir] = sprite
+        end
+    end
+    
+    self.sprites[name] = enemySprite
+    return enemySprite
 end
 
 function SpriteSystem:update(dt)
@@ -127,7 +155,7 @@ function SpriteSystem:render(name, x, y, rotation, scale)
         sprite.frameWidth / 2,
         sprite.frameHeight / 2
     )
-    
+
     -- Always reset color to white after drawing sprite
     love.graphics.setColor(1, 1, 1, 1)
 end
@@ -135,10 +163,10 @@ end
 function SpriteSystem:setDirection(name, direction)
     local sprite = self.sprites[name]
     if not sprite then return end
-
+    
     -- Map direction vector to direction name
     local directionName = "south"  -- Default
-
+    
     if direction.x == 0 and direction.y == -1 then
         directionName = "north"
     elseif direction.x == 1 and direction.y == 0 then
@@ -148,7 +176,27 @@ function SpriteSystem:setDirection(name, direction)
     elseif direction.x == -1 and direction.y == 0 then
         directionName = "west"
     end
+    
+    sprite.currentDirection = directionName
+end
 
+function SpriteSystem:setEnemyDirection(name, direction)
+    local sprite = self.sprites[name]
+    if not sprite then return end
+    
+    -- Map direction vector to direction name
+    local directionName = "south"  -- Default
+    
+    if direction.x == 0 and direction.y == -1 then
+        directionName = "north"
+    elseif direction.x == 1 and direction.y == 0 then
+        directionName = "east"
+    elseif direction.x == 0 and direction.y == 1 then
+        directionName = "south"
+    elseif direction.x == -1 and direction.y == 0 then
+        directionName = "west"
+    end
+    
     sprite.currentDirection = directionName
 end
 

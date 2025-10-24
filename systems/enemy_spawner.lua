@@ -81,7 +81,8 @@ function EnemySpawner:spawnEnemy(enemies, player, infiniteMap)
         attackPower = 1 * scalingFactor,  -- New property for attack power
         scalingFactor = scalingFactor,  -- Store scaling factor for reference
         attackCooldown = 1.0,  -- Attack cooldown in seconds
-        lastAttackTime = 0  -- Time of last attack
+        lastAttackTime = 0,  -- Time of last attack
+        facingDirection = {x = 0, y = 1}  -- Default facing south
     }
 
     -- Add enemy methods

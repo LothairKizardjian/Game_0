@@ -41,6 +41,9 @@ function RogueScene.new()
 
     -- Load player sprite
     self:loadPlayerSprite()
+    
+    -- Load enemy sprite
+    self:loadEnemySprite()
 
     -- Game state
     self.player = Entity.new(0, 0, TILE - 12, TILE - 12, COLOR_PLAYER, 150, 10, true)
@@ -70,13 +73,27 @@ function RogueScene:loadPlayerSprite()
     -- Load directional knight sprites using PNG files
     print("Loading knight sprites...")
     local success = self.spriteSystem:createDirectionalSprite("player", "assets/Knight_walk")
-
+    
     if success and self.spriteSystem.sprites["player"] then
         print("Knight sprites loaded successfully")
     else
         print("Failed to load knight sprites - using fallback")
         -- Create a simple colored rectangle as fallback
         self.spriteSystem:createFallbackSprite("player")
+    end
+end
+
+function RogueScene:loadEnemySprite()
+    -- Load directional skeleton sprites using PNG files
+    print("Loading skeleton sprites...")
+    local success = self.spriteSystem:createEnemySprite("enemy", "assets/skeleton_walk")
+    
+    if success and self.spriteSystem.sprites["enemy"] then
+        print("Skeleton sprites loaded successfully")
+    else
+        print("Failed to load skeleton sprites - using fallback")
+        -- Create a simple colored rectangle as fallback
+        self.spriteSystem:createFallbackSprite("enemy")
     end
 end
 
@@ -280,6 +297,11 @@ function RogueScene:update(dt)
         if length > 0 then
             local dirX = dx / length
             local dirY = dy / length
+            
+            -- Update enemy facing direction
+            enemy.facingDirection.x = dirX
+            enemy.facingDirection.y = dirY
+            
             self:moveEntity(enemy, dirX * enemy.speed * enemySpeedMultiplier * dt, dirY * enemy.speed * enemySpeedMultiplier * dt)
         end
     end
@@ -528,8 +550,13 @@ function RogueScene:render()
     self.spriteSystem:render("player", self.player.x + self.player.w/2, self.player.y + self.player.h/2)
 
     for _, enemy in ipairs(self.enemies) do
-        love.graphics.setColor(COLOR_ENEMY[1], COLOR_ENEMY[2], COLOR_ENEMY[3])
-        love.graphics.rectangle('fill', enemy.x, enemy.y, enemy.w, enemy.h)
+        -- Set enemy sprite direction
+        self.spriteSystem:setEnemyDirection("enemy", enemy.facingDirection)
+        
+        -- Reset color before drawing enemy sprite
+        love.graphics.setColor(1, 1, 1, 1)
+        -- Draw enemy sprite
+        self.spriteSystem:render("enemy", enemy.x + enemy.w/2, enemy.y + enemy.h/2)
     end
 
     -- Draw health bars
