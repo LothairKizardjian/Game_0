@@ -15,6 +15,7 @@ local EnemySpawner = require('systems.enemy_spawner')
 local PowerSystem = require('game.bonus')
 local XPShardSystem = require('game.xp_shard')
 local GameOverScene = require('game.gameover')
+local PauseMenu = require('game.pause')
 local SpriteSystem = require('systems.sprite')
 
 -- Constants
@@ -65,6 +66,10 @@ function RogueScene.new()
     self.showingPowerSelection = false
     self.gameOver = false
     self.gameOverScene = nil
+    
+    -- Pause state
+    self.paused = false
+    self.pauseMenu = nil
 
     -- Initialize power selection at start
     self:showPowerSelection()
@@ -121,6 +126,19 @@ function RogueScene:selectPower(power)
     self.powerSelection = nil
 end
 
+function RogueScene:pauseGame()
+    self.paused = true
+    if not self.pauseMenu then
+        self.pauseMenu = PauseMenu.new()
+        self.pauseMenu:load()
+    end
+end
+
+function RogueScene:resumeGame()
+    self.paused = false
+    self.pauseMenu = nil
+end
+
 function RogueScene:findSafeSpawnPosition()
     -- Try to find a safe spawn position
     local attempts = 0
@@ -170,6 +188,20 @@ function RogueScene:restartGame()
 end
 
 function RogueScene:keypressed(key)
+    -- Handle pause menu
+    if self.paused then
+        if key == 'escape' then
+            self:resumeGame()
+        end
+        return
+    end
+    
+    -- Handle pause toggle
+    if key == 'escape' then
+        self:pauseGame()
+        return
+    end
+    
     -- Handle power selection
     if self.showingPowerSelection then
         if key == '1' then
@@ -201,6 +233,17 @@ function RogueScene:keyreleased(key)
 end
 
 function RogueScene:mousepressed(x, y, button)
+    -- Handle pause menu mouse clicks
+    if self.paused and self.pauseMenu then
+        local action = self.pauseMenu:mousepressed(x, y, button)
+        if action == "resume" then
+            self:resumeGame()
+        elseif action == "exit" then
+            love.event.quit()
+        end
+        return
+    end
+    
     -- Handle game over screen mouse clicks
     if self.gameOver and self.gameOverScene then
         self.gameOverScene:mousepressed(x, y, button)
@@ -226,6 +269,14 @@ function RogueScene:mousereleased(x, y, button)
 end
 
 function RogueScene:update(dt)
+    -- Handle pause menu
+    if self.paused then
+        if self.pauseMenu then
+            self.pauseMenu:update(dt)
+        end
+        return
+    end
+    
     -- Handle power selection screen
     if self.showingPowerSelection then
         return
@@ -521,6 +572,14 @@ end
 
 function RogueScene:render()
     love.graphics.clear(COLOR_BG[1], COLOR_BG[2], COLOR_BG[3])
+
+    -- Handle pause menu
+    if self.paused then
+        if self.pauseMenu then
+            self.pauseMenu:render()
+        end
+        return
+    end
 
     -- Handle power selection screen
     if self.showingPowerSelection then

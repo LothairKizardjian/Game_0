@@ -366,7 +366,7 @@ function PowerSelection:mousepressed(x, y, button)
         -- Get screen dimensions for consistent positioning
         local screenW = love.graphics.getWidth()
         local screenH = love.graphics.getHeight()
-        
+
         -- Calculate power box positions (same as render function)
         local powerBoxWidth = 200
         local powerBoxHeight = 300
@@ -374,7 +374,7 @@ function PowerSelection:mousepressed(x, y, button)
         local totalWidth = (#self.powers - 1) * spacing + powerBoxWidth
         local startX = (screenW - totalWidth) / 2
         local startY = screenH / 2 - powerBoxHeight / 2
-        
+
         -- Check which power was clicked
         for i, power in ipairs(self.powers) do
             local powerX = startX + (i - 1) * spacing
