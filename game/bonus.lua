@@ -222,12 +222,12 @@ end
 
 function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
     self.spawnTimer = self.spawnTimer + dt
-    
+
     -- Debug output
     if self.spawnTimer >= self.spawnInterval then
         print("Meteor spawn check: timer=" .. self.spawnTimer .. ", interval=" .. self.spawnInterval .. ", meteors=" .. #self.meteors .. ", max=" .. self.maxMeteors)
     end
-    
+
     -- Spawn meteors with delay between each
     if self.spawnTimer >= self.spawnInterval and #self.meteors < self.maxMeteors then
         -- Spawn one meteor at a time with delay
@@ -363,12 +363,24 @@ end
 
 function PowerSelection:mousepressed(x, y, button)
     if button == 1 then -- Left mouse button
+        -- Get screen dimensions for consistent positioning
+        local screenW = love.graphics.getWidth()
+        local screenH = love.graphics.getHeight()
+        
+        -- Calculate power box positions (same as render function)
+        local powerBoxWidth = 200
+        local powerBoxHeight = 300
+        local spacing = 250
+        local totalWidth = (#self.powers - 1) * spacing + powerBoxWidth
+        local startX = (screenW - totalWidth) / 2
+        local startY = screenH / 2 - powerBoxHeight / 2
+        
         -- Check which power was clicked
         for i, power in ipairs(self.powers) do
-            local powerX = 50 + (i - 1) * 250
-            local powerY = 150
+            local powerX = startX + (i - 1) * spacing
+            local powerY = startY
 
-            if x >= powerX and x <= powerX + 200 and y >= powerY and y <= powerY + 300 then
+            if x >= powerX and x <= powerX + powerBoxWidth and y >= powerY and y <= powerY + powerBoxHeight then
                 self.selectedPower = power
                 break
             end
@@ -379,20 +391,31 @@ end
 function PowerSelection:render()
     love.graphics.clear(0.1, 0.1, 0.15)
 
+    -- Get screen dimensions
+    local screenW = love.graphics.getWidth()
+    local screenH = love.graphics.getHeight()
+
     -- Title
     love.graphics.setFont(self.titleFont)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.printf("Choose a Power", 0, 50, 800, 'center')
+    love.graphics.printf("Choose a Power", 0, 50, screenW, 'center')
 
     -- Instructions
     love.graphics.setFont(self.font)
     love.graphics.setColor(0.8, 0.8, 0.8)
-    love.graphics.printf("Click a power to select, or press 1, 2, or 3", 0, 100, 800, 'center')
+    love.graphics.printf("Click a power to select, or press 1, 2, or 3", 0, 100, screenW, 'center')
 
-    -- Display powers
+    -- Display powers - center them on screen
+    local powerBoxWidth = 200
+    local powerBoxHeight = 300
+    local spacing = 250
+    local totalWidth = (#self.powers - 1) * spacing + powerBoxWidth
+    local startX = (screenW - totalWidth) / 2
+    local startY = screenH / 2 - powerBoxHeight / 2
+
     for i, power in ipairs(self.powers) do
-        local x = 50 + (i - 1) * 250
-        local y = 150
+        local x = startX + (i - 1) * spacing
+        local y = startY
 
         -- Power box
         love.graphics.setColor(0.2, 0.2, 0.3)
