@@ -132,7 +132,7 @@ function Config.init()
 
     -- Set Love2D window properties
     love.window.setTitle(Config.GAME.TITLE)
-    
+
     if Config.GAME.FULLSCREEN then
         love.window.setFullscreen(true)
     else

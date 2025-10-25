@@ -38,22 +38,32 @@ function EnemySpawner:update(dt, enemies, player, infiniteMap, spriteSystem)
 end
 
 function EnemySpawner:spawnEnemy(enemies, player, infiniteMap, spriteSystem)
-    -- Find a random floor tile away from player
+    -- Get screen dimensions for camera bounds
+    local screenW, screenH = love.graphics.getDimensions()
+    local cameraX = player.x - screenW / 4  -- Approximate camera position
+    local cameraY = player.y - screenH / 4
+    
+    -- Spawn enemies outside camera view
     local attempts = 0
     local x, y
     repeat
-        x, y = infiniteMap:randomFloorTile(player.x, player.y)
-        attempts = attempts + 1
-
-        -- Check distance from player
-        local playerTileX = math.floor(player.x / 32) + 1
-        local playerTileY = math.floor(player.y / 32) + 1
-        local distance = math.sqrt((x - playerTileX)^2 + (y - playerTileY)^2)
-
-        if distance >= 5 or attempts > 20 then  -- At least 5 tiles away or give up
+        -- Try to spawn outside camera bounds
+        local spawnDistance = math.max(screenW, screenH) / 2 + 200  -- Outside screen + buffer
+        local angle = math.random() * 2 * math.pi
+        local spawnX = player.x + math.cos(angle) * spawnDistance
+        local spawnY = player.y + math.sin(angle) * spawnDistance
+        
+        -- Convert to tile coordinates
+        x = math.floor(spawnX / 32)
+        y = math.floor(spawnY / 32)
+        
+        -- Check if it's a floor tile
+        if infiniteMap:getTileAtWorldPos(x * 32, y * 32) == 0 then
             break
         end
-    until false
+        
+        attempts = attempts + 1
+    until attempts > 50  -- Give up after 50 attempts
 
     -- Calculate scaling based on time elapsed
     local timeElapsed = love.timer.getTime() - self.startTime

@@ -222,10 +222,16 @@ end
 
 function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
     self.spawnTimer = self.spawnTimer + dt
-
+    
+    -- Debug output
+    if self.spawnTimer >= self.spawnInterval then
+        print("Meteor spawn check: timer=" .. self.spawnTimer .. ", interval=" .. self.spawnInterval .. ", meteors=" .. #self.meteors .. ", max=" .. self.maxMeteors)
+    end
+    
     -- Spawn meteors with delay between each
     if self.spawnTimer >= self.spawnInterval and #self.meteors < self.maxMeteors then
         -- Spawn one meteor at a time with delay
+        print("Spawning meteor!")
         self:spawnMeteor(playerX, playerY)
         self.spawnTimer = 0
         -- Set a shorter interval for subsequent meteors

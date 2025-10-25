@@ -17,21 +17,28 @@ function GameOverScene.new(finalLevel, finalXP, enemiesKilled)
     self.finalXP = finalXP or 0
     self.enemiesKilled = enemiesKilled or 0
 
+    -- Calculate button positions based on screen size
+    local screenW = love.graphics.getWidth()
+    local screenH = love.graphics.getHeight()
+    local buttonWidth = 200
+    local buttonHeight = 50
+    local buttonX = (screenW - buttonWidth) / 2
+    
     self.buttons = {
         {
             text = "New Game",
-            x = 300,
-            y = 300,
-            width = 200,
-            height = 50,
+            x = buttonX,
+            y = screenH / 2 - 25,
+            width = buttonWidth,
+            height = buttonHeight,
             action = "restart"
         },
         {
             text = "Exit",
-            x = 300,
-            y = 370,
-            width = 200,
-            height = 50,
+            x = buttonX,
+            y = screenH / 2 + 45,
+            width = buttonWidth,
+            height = buttonHeight,
             action = "exit"
         }
     }

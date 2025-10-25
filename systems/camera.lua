@@ -6,14 +6,14 @@ Camera.__index = Camera
 
 function Camera.new()
     local self = setmetatable({}, Camera)
-    
+
     self.x = 0
     self.y = 0
     self.targetX = 0
     self.targetY = 0
     self.zoom = 2.0
     self.smooth = 5.0
-    
+
     return self
 end
 
