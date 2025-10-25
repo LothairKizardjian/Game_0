@@ -47,8 +47,9 @@ function EnemySpawner:spawnEnemy(enemies, player, infiniteMap, spriteSystem)
     local attempts = 0
     local x, y
     repeat
-        -- Try to spawn outside camera bounds
-        local spawnDistance = math.max(screenW, screenH) / 2 + 200  -- Outside screen + buffer
+        -- Try to spawn outside camera bounds but closer to player
+        local baseDistance = math.max(screenW, screenH) / 2 + 50  -- Outside screen + smaller buffer
+        local spawnDistance = baseDistance + math.random(0, 100)  -- Add some variation (50-150px beyond screen)
         local angle = math.random() * 2 * math.pi
         local spawnX = player.x + math.cos(angle) * spawnDistance
         local spawnY = player.y + math.sin(angle) * spawnDistance

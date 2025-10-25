@@ -208,7 +208,7 @@ Meteor.__index = Meteor
 
 function Meteor.new(level)
     local self = setmetatable({}, Meteor)
-    
+
     self.level = level or 1
     self.damage = 3 * self.level
     self.radius = 40 + (self.level - 1) * 10  -- Radius increases with level
@@ -216,24 +216,24 @@ function Meteor.new(level)
     self.spawnTimer = 0
     self.spawnInterval = 2.0  -- Spawn every 2 seconds
     self.maxMeteors = math.min(5, math.floor((self.level + 1) / 2))  -- One meteor every 2 levels, max 5
-    
+
     -- Burst system
     self.burstTimer = 0
     self.burstInterval = 0.3  -- 0.3 seconds between meteors in burst
     self.meteorsSpawnedInBurst = 0
     self.inBurst = false
-    
+
     return self
 end
 
 function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
     self.spawnTimer = self.spawnTimer + dt
-    
+
     -- Debug output
     if self.spawnTimer >= self.spawnInterval then
         print("Meteor spawn check: timer=" .. self.spawnTimer .. ", interval=" .. self.spawnInterval .. ", meteors=" .. #self.meteors .. ", max=" .. self.maxMeteors)
     end
-    
+
     -- Start burst when interval is reached and we need meteors
     if self.spawnTimer >= self.spawnInterval and #self.meteors < self.maxMeteors and not self.inBurst then
         print("Starting meteor burst!")
@@ -242,17 +242,17 @@ function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
         self.meteorsSpawnedInBurst = 0
         self.spawnTimer = 0
     end
-    
+
     -- Handle burst spawning
     if self.inBurst then
         self.burstTimer = self.burstTimer + dt
-        
+
         if self.burstTimer >= self.burstInterval and self.meteorsSpawnedInBurst < self.maxMeteors then
             print("Spawning meteor in burst!")
             self:spawnMeteor(playerX, playerY)
             self.burstTimer = 0
             self.meteorsSpawnedInBurst = self.meteorsSpawnedInBurst + 1
-            
+
             -- End burst if we've spawned all meteors
             if self.meteorsSpawnedInBurst >= self.maxMeteors then
                 self.inBurst = false
