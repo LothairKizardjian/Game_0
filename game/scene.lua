@@ -66,7 +66,7 @@ function RogueScene.new()
     self.showingPowerSelection = false
     self.gameOver = false
     self.gameOverScene = nil
-    
+
     -- Pause state
     self.paused = false
     self.pauseMenu = nil
@@ -195,13 +195,13 @@ function RogueScene:keypressed(key)
         end
         return
     end
-    
+
     -- Handle pause toggle
     if key == 'escape' then
         self:pauseGame()
         return
     end
-    
+
     -- Handle power selection
     if self.showingPowerSelection then
         if key == '1' then
@@ -243,7 +243,7 @@ function RogueScene:mousepressed(x, y, button)
         end
         return
     end
-    
+
     -- Handle game over screen mouse clicks
     if self.gameOver and self.gameOverScene then
         self.gameOverScene:mousepressed(x, y, button)
@@ -276,7 +276,7 @@ function RogueScene:update(dt)
         end
         return
     end
-    
+
     -- Handle power selection screen
     if self.showingPowerSelection then
         return
