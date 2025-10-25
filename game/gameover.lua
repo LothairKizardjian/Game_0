@@ -86,14 +86,15 @@ function GameOverScene:render()
     -- Title
     love.graphics.setFont(self.titleFont)
     love.graphics.setColor(1, 0.2, 0.2, 1)
-    love.graphics.printf("GAME OVER", 0, 100, 800, 'center')
+    local screenW = love.graphics.getWidth()
+    love.graphics.printf("GAME OVER", 0, 100, screenW, 'center')
 
     -- Stats
     love.graphics.setFont(self.font)
     love.graphics.setColor(COLOR_UI[1], COLOR_UI[2], COLOR_UI[3])
-    love.graphics.printf("Final Level: " .. self.finalLevel, 0, 180, 800, 'center')
-    love.graphics.printf("Experience: " .. self.finalXP, 0, 210, 800, 'center')
-    love.graphics.printf("Enemies Defeated: " .. self.enemiesKilled, 0, 240, 800, 'center')
+    love.graphics.printf("Final Level: " .. self.finalLevel, 0, 180, screenW, 'center')
+    love.graphics.printf("Experience: " .. self.finalXP, 0, 210, screenW, 'center')
+    love.graphics.printf("Enemies Defeated: " .. self.enemiesKilled, 0, 240, screenW, 'center')
 
     -- Buttons
     for _, button in ipairs(self.buttons) do
@@ -111,8 +112,8 @@ function GameOverScene:render()
 
     -- Instructions
     love.graphics.setColor(COLOR_UI[1], COLOR_UI[2], COLOR_UI[3])
-    love.graphics.printf("Click a button or use ENTER/SPACE", 0, 450, 800, 'center')
-    love.graphics.printf("Press ESC to exit", 0, 480, 800, 'center')
+    love.graphics.printf("Click a button or use ENTER/SPACE", 0, 450, screenW, 'center')
+    love.graphics.printf("Press ESC to exit", 0, 480, screenW, 'center')
 end
 
 function GameOverScene:handleButtonClick(action)

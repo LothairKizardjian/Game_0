@@ -19,7 +19,8 @@ local SpriteSystem = require('systems.sprite')
 
 -- Constants
 local TILE = 32
-local SCREEN_W, SCREEN_H = 800, 576
+-- Screen dimensions will be set dynamically
+local SCREEN_W, SCREEN_H = 800, 576  -- Default fallback
 
 -- Colors
 local COLOR_BG = {12/255, 12/255, 16/255}
@@ -537,7 +538,8 @@ function RogueScene:render()
     self.camera:apply()
 
     -- Draw infinite map tiles
-    self.infiniteMap:render(self.camera.x, self.camera.y, self.camera.zoom, SCREEN_W, SCREEN_H)
+    local screenW, screenH = love.graphics.getDimensions()
+    self.infiniteMap:render(self.camera.x, self.camera.y, self.camera.zoom, screenW, screenH)
 
     -- Draw XP shards
     self.xpShardManager:render()

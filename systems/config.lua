@@ -9,7 +9,7 @@ Config.GAME = {
     VERSION = "1.0.0",
     TARGET_FPS = 60,
     VSYNC = true,
-    FULLSCREEN = false
+    FULLSCREEN = true
 }
 
 -- Window Settings
@@ -132,10 +132,15 @@ function Config.init()
 
     -- Set Love2D window properties
     love.window.setTitle(Config.GAME.TITLE)
-    love.window.setMode(Config.WINDOW.WIDTH, Config.WINDOW.HEIGHT, {
-        resizable = Config.WINDOW.RESIZABLE,
-        vsync = Config.GAME.VSYNC
-    })
+    
+    if Config.GAME.FULLSCREEN then
+        love.window.setFullscreen(true)
+    else
+        love.window.setMode(Config.WINDOW.WIDTH, Config.WINDOW.HEIGHT, {
+            resizable = Config.WINDOW.RESIZABLE,
+            vsync = Config.GAME.VSYNC
+        })
+    end
 
     -- Set Love2D graphics properties
     love.graphics.setDefaultFilter("nearest", "nearest")

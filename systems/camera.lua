@@ -23,8 +23,9 @@ function Camera:update(dt, playerX, playerY, playerW, playerH)
     local playerCenterY = playerY + playerH / 2
 
     -- Calculate screen center in world coordinates
-    local screenCenterX = 800 / (2 * self.zoom)  -- SCREEN_W / (2 * zoom)
-    local screenCenterY = 576 / (2 * self.zoom)  -- SCREEN_H / (2 * zoom)
+    local screenW, screenH = love.graphics.getDimensions()
+    local screenCenterX = screenW / (2 * self.zoom)
+    local screenCenterY = screenH / (2 * self.zoom)
 
     -- Set target camera position
     self.targetX = playerCenterX - screenCenterX

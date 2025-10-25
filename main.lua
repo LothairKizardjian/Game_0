@@ -10,9 +10,6 @@ local Performance = require('systems.performance')
 local performance = Performance.new()
 
 function love.load()
-    -- Set window to fullscreen
-    love.window.setFullscreen(true)
-    
     -- Initialize configuration
     Config.init()
 
