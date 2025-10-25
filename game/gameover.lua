@@ -23,7 +23,7 @@ function GameOverScene.new(finalLevel, finalXP, enemiesKilled)
     local buttonWidth = 200
     local buttonHeight = 50
     local buttonX = (screenW - buttonWidth) / 2
-    
+
     self.buttons = {
         {
             text = "New Game",

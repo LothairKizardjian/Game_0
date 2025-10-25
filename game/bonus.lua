@@ -234,7 +234,7 @@ function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
         print("Spawning meteor!")
         self:spawnMeteor(playerX, playerY)
         self.spawnTimer = 0
-        -- Set a shorter interval for subsequent meteors
+        -- Keep the interval at 0.3 for continuous spawning
         self.spawnInterval = 0.3  -- 0.3 second delay between meteors
     end
 
@@ -257,14 +257,13 @@ function Meteor:update(dt, playerX, playerY, playerW, playerH, enemies)
             end
 
             -- Remove meteor
+            print("Meteor hit ground, removing. Count before: " .. #self.meteors)
             table.remove(self.meteors, i)
+            print("Meteor removed. Count after: " .. #self.meteors)
         end
     end
 
-    -- Reset spawn interval when all meteors are destroyed
-    if #self.meteors == 0 then
-        self.spawnInterval = 2.0  -- Reset to original interval
-    end
+    -- No need to reset spawn interval - keep it at 0.3 for continuous spawning
 end
 
 function Meteor:spawnMeteor(playerX, playerY)

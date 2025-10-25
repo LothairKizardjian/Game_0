@@ -42,7 +42,7 @@ function EnemySpawner:spawnEnemy(enemies, player, infiniteMap, spriteSystem)
     local screenW, screenH = love.graphics.getDimensions()
     local cameraX = player.x - screenW / 4  -- Approximate camera position
     local cameraY = player.y - screenH / 4
-    
+
     -- Spawn enemies outside camera view
     local attempts = 0
     local x, y
@@ -52,16 +52,16 @@ function EnemySpawner:spawnEnemy(enemies, player, infiniteMap, spriteSystem)
         local angle = math.random() * 2 * math.pi
         local spawnX = player.x + math.cos(angle) * spawnDistance
         local spawnY = player.y + math.sin(angle) * spawnDistance
-        
+
         -- Convert to tile coordinates
         x = math.floor(spawnX / 32)
         y = math.floor(spawnY / 32)
-        
+
         -- Check if it's a floor tile
         if infiniteMap:getTileAtWorldPos(x * 32, y * 32) == 0 then
             break
         end
-        
+
         attempts = attempts + 1
     until attempts > 50  -- Give up after 50 attempts
 
