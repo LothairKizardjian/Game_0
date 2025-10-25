@@ -192,7 +192,7 @@ function Entity:applyPower(power)
             -- Upgrade existing orbiting blades
             self.orbitingBlades.level = math.min(10, self.orbitingBlades.level + 1)  -- Cap at level 10
             self.orbitingBlades.damage = 2 * self.orbitingBlades.level
-            
+
             -- Recreate blades with new count
             local numBlades = 3  -- Base number of blades
             if self.orbitingBlades.level >= 5 then
@@ -201,7 +201,7 @@ function Entity:applyPower(power)
             if self.orbitingBlades.level >= 10 then
                 numBlades = numBlades + 1  -- +1 blade at level 10
             end
-            
+
             -- Clear and recreate blades
             self.orbitingBlades.blades = {}
             for i = 1, numBlades do

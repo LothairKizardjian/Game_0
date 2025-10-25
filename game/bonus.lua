@@ -56,7 +56,7 @@ function Power:getEnhancedDescription()
         if self.level >= 10 then
             newBlades = newBlades + 1
         end
-        
+
         if currentDamage > 0 then
             -- Player already has this power - show upgrade
             local damageIncrease = newDamage - currentDamage
@@ -147,7 +147,7 @@ function OrbitingBlades.new(level)
     if self.level >= 10 then
         numBlades = numBlades + 1  -- +1 blade at level 10
     end
-    
+
     -- Create blades
     for i = 1, numBlades do
         table.insert(self.blades, {
