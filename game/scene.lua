@@ -224,10 +224,11 @@ function RogueScene:keypressed(key)
     elseif key == '0' then
         self.camera:resetZoom()
     end
-    
+
     -- Debug: Level up with L key
     if key == 'l' then
         self.player:levelUp()
+        self:showPowerSelection()
         print("Debug: Player leveled up to level " .. self.player.level)
     end
 
