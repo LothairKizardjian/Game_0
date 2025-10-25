@@ -340,27 +340,42 @@ function PowerSelection:generatePowers(count)
 
     -- Offer random powers from available definitions
     for i = 1, count do
-        local powerDef = POWER_DEFINITIONS[math.random(1, #POWER_DEFINITIONS)]
+        local attempts = 0
+        local powerAdded = false
+        
+        -- Retry logic to find a valid power
+        while not powerAdded and attempts < 50 do
+            local powerDef = POWER_DEFINITIONS[math.random(1, #POWER_DEFINITIONS)]
 
-        -- Check if player already has this power
-        local existingLevel = 1
-        local isMaxLevel = false
-        for _, existingPower in ipairs(self.playerPowers) do
-            if existingPower.id == powerDef.id then
-                if existingPower.level >= 10 then
-                    isMaxLevel = true
+            -- Check if player already has this power
+            local existingLevel = 1
+            local isMaxLevel = false
+            for _, existingPower in ipairs(self.playerPowers) do
+                if existingPower.id == powerDef.id then
+                    if existingPower.level >= 10 then
+                        isMaxLevel = true
+                        break
+                    end
+                    existingLevel = math.min(10, existingPower.level + 1)  -- Cap at level 10
                     break
                 end
-                existingLevel = math.min(10, existingPower.level + 1)  -- Cap at level 10
-                break
             end
-        end
 
-        -- Skip if power is already at max level
-        if not isMaxLevel then
-            local power = Power.new(powerDef.id, powerDef.name, powerDef.description, powerDef.rarity, existingLevel)
-            power.playerPowers = self.playerPowers  -- Pass player powers for damage calculation
-            table.insert(self.powers, power)
+            -- Add power if not at max level
+            if not isMaxLevel then
+                local power = Power.new(powerDef.id, powerDef.name, powerDef.description, powerDef.rarity, existingLevel)
+                power.playerPowers = self.playerPowers  -- Pass player powers for damage calculation
+                table.insert(self.powers, power)
+                powerAdded = true
+            end
+            
+            attempts = attempts + 1
+        end
+        
+        -- If we couldn't find a valid power after 50 attempts, break
+        if not powerAdded then
+            print("Warning: Could not find valid power after 50 attempts")
+            break
         end
     end
 end
