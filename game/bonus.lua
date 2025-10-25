@@ -47,13 +47,23 @@ function Power:getEnhancedDescription()
     local newDamage = self:getNewDamage()
 
     if self.id == "orbiting_blades" then
+        -- Calculate blade count for current and new level
+        local currentBlades = 3
+        local newBlades = 3
+        if self.level >= 5 then
+            newBlades = newBlades + 1
+        end
+        if self.level >= 10 then
+            newBlades = newBlades + 1
+        end
+        
         if currentDamage > 0 then
             -- Player already has this power - show upgrade
             local damageIncrease = newDamage - currentDamage
-            return "3 blades orbit around you, dealing " .. currentDamage .. " ( + " .. damageIncrease .. " ) damage."
+            return newBlades .. " blades orbit around you, dealing " .. currentDamage .. " ( + " .. damageIncrease .. " ) damage."
         else
             -- New power - show initial damage
-            return "3 blades orbit around you, dealing " .. newDamage .. " damage."
+            return newBlades .. " blades orbit around you, dealing " .. newDamage .. " damage."
         end
     elseif self.id == "meteor" then
         local currentRadius = currentDamage > 0 and (40 + (self.level - 2) * 10) or 40
@@ -111,7 +121,7 @@ local RARITY_COLORS = {
 
 -- Power definitions
 local POWER_DEFINITIONS = {
-    {id = "orbiting_blades", name = "Orbiting Blades", description = "3 blades orbit around you, dealing damage on contact", rarity = "rare", baseDamage = 2, baseRadius = 60},
+    {id = "orbiting_blades", name = "Orbiting Blades", description = "3 blades orbit around you, dealing damage on contact. +1 blade at level 5, +1 blade at level 10", rarity = "rare", baseDamage = 2, baseRadius = 60},
     {id = "meteor", name = "Meteor", description = "Meteors fall from the sky dealing damage on impact. Radius: 40px, Meteors: 1", rarity = "epic", baseDamage = 3, baseRadius = 40}
 }
 
@@ -129,10 +139,19 @@ function OrbitingBlades.new(level)
     self.angle = 0
     self.blades = {}
 
-    -- Create 3 blades
-    for i = 1, 3 do
+    -- Calculate number of blades based on level
+    local numBlades = 3  -- Base number of blades
+    if self.level >= 5 then
+        numBlades = numBlades + 1  -- +1 blade at level 5
+    end
+    if self.level >= 10 then
+        numBlades = numBlades + 1  -- +1 blade at level 10
+    end
+    
+    -- Create blades
+    for i = 1, numBlades do
         table.insert(self.blades, {
-            angle = (i - 1) * (2 * math.pi / 3),  -- 120 degrees apart
+            angle = (i - 1) * (2 * math.pi / numBlades),  -- Evenly spaced
             x = 0,
             y = 0,
             size = 8
@@ -149,8 +168,9 @@ function OrbitingBlades:update(dt, playerX, playerY, playerW, playerH, enemies)
     local centerY = playerY + playerH / 2
 
     -- Update blade positions
+    local numBlades = #self.blades
     for i, blade in ipairs(self.blades) do
-        blade.angle = self.angle + (i - 1) * (2 * math.pi / 3)
+        blade.angle = self.angle + (i - 1) * (2 * math.pi / numBlades)
         blade.x = centerX + math.cos(blade.angle) * self.radius
         blade.y = centerY + math.sin(blade.angle) * self.radius
     end

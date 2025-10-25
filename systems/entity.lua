@@ -192,6 +192,26 @@ function Entity:applyPower(power)
             -- Upgrade existing orbiting blades
             self.orbitingBlades.level = math.min(10, self.orbitingBlades.level + 1)  -- Cap at level 10
             self.orbitingBlades.damage = 2 * self.orbitingBlades.level
+            
+            -- Recreate blades with new count
+            local numBlades = 3  -- Base number of blades
+            if self.orbitingBlades.level >= 5 then
+                numBlades = numBlades + 1  -- +1 blade at level 5
+            end
+            if self.orbitingBlades.level >= 10 then
+                numBlades = numBlades + 1  -- +1 blade at level 10
+            end
+            
+            -- Clear and recreate blades
+            self.orbitingBlades.blades = {}
+            for i = 1, numBlades do
+                table.insert(self.orbitingBlades.blades, {
+                    angle = (i - 1) * (2 * math.pi / numBlades),  -- Evenly spaced
+                    x = 0,
+                    y = 0,
+                    size = 8
+                })
+            end
         else
             -- Create new orbiting blades
             local OrbitingBlades = require('game.bonus').OrbitingBlades
